@@ -148,6 +148,18 @@
       image-rendering: pixelated;
     }
 
+    .audio-hint {
+      margin: 5px 0 2px;
+      color: var(--coral);
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1.35;
+      text-align: center;
+    }
+
+    .audio-hint.playing { color: var(--green); }
+    .game-logo-lockup.compact .audio-hint { display: none; }
+
     .panel strong { color: var(--green); }
 
     .best-score-line {
@@ -351,6 +363,7 @@
           <div id="startLogo" class="game-logo-lockup">
             <img id="gameTitleLogo" class="game-title-logo" alt="JJTT 양말가게 타이쿤! 한 켤레 팔리면, 한 켤레 기부!">
             <h1 id="overlayTitle">양말가게 타이쿤!</h1>
+            <div id="audioHint" class="audio-hint">♫ 화면을 한 번 탭하면 메인 음악이 시작돼요</div>
           </div>
           <div id="overlayBody" class="overlay-body">
             <strong>1/2 양말 제작</strong> · 재봉 → 스팀 → 포장 → 판매<br>
@@ -383,6 +396,7 @@
       const overlay = document.getElementById('overlay');
       const startLogo = document.getElementById('startLogo');
       const gameTitleLogo = document.getElementById('gameTitleLogo');
+      const audioHint = document.getElementById('audioHint');
       const overlayTitle = document.getElementById('overlayTitle');
       const overlayBody = document.getElementById('overlayBody');
       const bestScoreLine = document.getElementById('bestScoreLine');
@@ -450,13 +464,14 @@
         finish: 'finish.webm'
       };
       const AUDIO_VOLUMES = {
-        main: 0.20,
-        stage1: 0.24,
-        transition: 0.32,
-        stage2: 0.25,
-        fever: 0.30,
-        finish: 0.32
+        main: 0.085,
+        stage1: 0.095,
+        transition: 0.11,
+        stage2: 0.10,
+        fever: 0.115,
+        finish: 0.11
       };
+      const SFX_MASTER_VOLUME = 0.90;
       const externalTracks = {};
       Object.entries(AUDIO_FILES).forEach(([name, file]) => {
         const audio = new Audio();
@@ -635,7 +650,7 @@
       }
 
       function musicTick() {
-        if (!audioContext || audioMuted || !masterGain || isPaused || phase === 'start' || phase === 'end') return;
+        if (!audioContext || audioMuted || !masterGain || isPaused || phase === 'end') return;
         const externalTrack = currentBgmName ? externalTracks[currentBgmName] : null;
         if (externalTrack && !externalTrack.failed) return;
         const feverActive = phase === 'delivery' && delivery && delivery.feverTime > 0 && !delivery.handoffModal;
@@ -742,28 +757,54 @@
         if (AudioContextClass && !audioContext) {
           audioContext = new AudioContextClass();
           masterGain = audioContext.createGain();
-          masterGain.gain.value = audioMuted ? 0 : 0.68;
+          masterGain.gain.value = audioMuted ? 0 : SFX_MASTER_VOLUME;
           masterGain.connect(audioContext.destination);
           musicTimer = window.setInterval(musicTick, 210);
         }
         if (audioContext && audioContext.state === 'suspended') audioContext.resume();
         syncExternalBgmForPhase();
         resumeCurrentExternalBgm();
+        if (phase === 'start' && !audioMuted) {
+          audioHint.textContent = '♫ 메인 음악 재생 중';
+          audioHint.classList.add('playing');
+        }
+        updateSoundButton();
       }
 
       function updateSoundButton() {
+        if (!externalAudioUnlocked) {
+          soundButton.textContent = '♫';
+          soundButton.setAttribute('aria-label', '음악 켜기');
+          soundButton.setAttribute('aria-pressed', 'false');
+          return;
+        }
         soundButton.textContent = audioMuted ? '×' : '♫';
         soundButton.setAttribute('aria-label', audioMuted ? '소리 켜기' : '소리 끄기');
         soundButton.setAttribute('aria-pressed', audioMuted ? 'true' : 'false');
       }
 
       function toggleAudio() {
+        const wasLocked = !externalAudioUnlocked;
         ensureAudio();
+        if (wasLocked) {
+          audioMuted = false;
+          if (masterGain) masterGain.gain.value = SFX_MASTER_VOLUME;
+          Object.values(externalTracks).forEach(track => { track.audio.muted = false; });
+          resumeCurrentExternalBgm();
+          updateSoundButton();
+          return;
+        }
         audioMuted = !audioMuted;
-        if (masterGain) masterGain.gain.value = audioMuted ? 0 : 0.68;
+        if (masterGain) masterGain.gain.value = audioMuted ? 0 : SFX_MASTER_VOLUME;
         Object.values(externalTracks).forEach(track => { track.audio.muted = audioMuted; });
         if (audioMuted) pauseAllExternalBgm();
-        else resumeCurrentExternalBgm();
+        else {
+          resumeCurrentExternalBgm();
+          if (phase === 'start') {
+            audioHint.textContent = '♫ 메인 음악 재생 중';
+            audioHint.classList.add('playing');
+          }
+        }
         updateSoundButton();
       }
 
@@ -2624,7 +2665,10 @@
       soundButton.onclick = toggleAudio;
       pauseButton.onclick = pauseGame;
       shareButton.onclick = shareScore;
-      window.addEventListener('pointerdown', ensureAudio, { once: true });
+      overlay.addEventListener('pointerdown', event => {
+        if (phase !== 'start' || externalAudioUnlocked || event.target.closest('button, a')) return;
+        ensureAudio();
+      });
       updateSoundButton();
 
       ctx.imageSmoothingEnabled = false;

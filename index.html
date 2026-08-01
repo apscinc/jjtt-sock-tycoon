@@ -627,12 +627,27 @@
         } else if (name === 'arrival') {
           playTone(392, 0.12, 'triangle', 0.035);
           playTone(523, 0.16, 'triangle', 0.035, 0.1);
+        } else if (name === 'handoffOpen') {
+          playNoise(0.07, 0.018);
+          playTone(392, 0.10, 'triangle', 0.052);
+          playTone(587, 0.12, 'triangle', 0.050, 0.09);
+          playTone(784, 0.18, 'square', 0.044, 0.18);
+        } else if (name === 'handoffTick') {
+          playTone(720, 0.045, 'square', 0.030);
+        } else if (name === 'handoffCenter') {
+          playTone(988, 0.075, 'triangle', 0.050);
+          playTone(1319, 0.09, 'triangle', 0.038, 0.045);
         } else if (name === 'perfect') {
-          [523, 659, 784, 1047].forEach((note, index) => playTone(note, 0.14, 'square', 0.038, index * 0.065));
+          [523, 659, 784, 1047, 1319].forEach((note, index) => playTone(note, 0.15, 'square', 0.052, index * 0.06));
+          playNoise(0.07, 0.016);
         } else if (name === 'good') {
-          playTone(440, 0.12, 'triangle', 0.034);
-          playTone(587, 0.16, 'triangle', 0.034, 0.09);
-        } else if (name === 'safe') playTone(330, 0.2, 'triangle', 0.03);
+          playTone(440, 0.13, 'triangle', 0.050);
+          playTone(587, 0.16, 'triangle', 0.048, 0.09);
+          playTone(784, 0.18, 'triangle', 0.042, 0.18);
+        } else if (name === 'safe') {
+          playTone(330, 0.18, 'triangle', 0.044);
+          playTone(392, 0.20, 'triangle', 0.038, 0.12);
+        }
         else if (name === 'shopClose') {
           playTone(1047, 0.24, 'triangle', 0.042);
           playTone(523, 0.34, 'square', 0.022, 0.08);
@@ -650,7 +665,8 @@
       }
 
       function musicTick() {
-        if (!audioContext || audioMuted || !masterGain || isPaused || phase === 'end') return;
+        if (!audioContext || audioMuted || !masterGain || isPaused || phase === 'end'
+            || (phase === 'delivery' && delivery && delivery.handoffModal)) return;
         const externalTrack = currentBgmName ? externalTracks[currentBgmName] : null;
         if (externalTrack && !externalTrack.failed) return;
         const feverActive = phase === 'delivery' && delivery && delivery.feverTime > 0 && !delivery.handoffModal;
@@ -711,7 +727,8 @@
         if (phase === 'factory') return 'stage1';
         if (phase === 'transition') return 'transition';
         if (phase === 'delivery') {
-          return delivery && delivery.feverTime > 0 && !delivery.handoffModal ? 'fever' : 'stage2';
+          if (delivery && delivery.handoffModal) return null;
+          return delivery && delivery.feverTime > 0 ? 'fever' : 'stage2';
         }
         if (phase === 'end') return finishMusicCompleted ? 'main' : 'finish';
         return null;
@@ -749,6 +766,15 @@
       function resumeCurrentExternalBgm() {
         if (!currentBgmName) syncExternalBgmForPhase();
         safePlayExternalTrack(externalTracks[currentBgmName]);
+      }
+
+      function resumeAfterHandoff(modal) {
+        const resumeName = delivery && delivery.feverTime > 0 ? 'fever' : (modal.resumeBgm || 'stage2');
+        const track = externalTracks[resumeName];
+        if (!track) return;
+        currentBgmName = resumeName;
+        track.audio.volume = 0;
+        safePlayExternalTrack(track);
       }
 
       function ensureAudio() {
@@ -1431,11 +1457,15 @@
           marker: stop.designIndex % 2 === 0 ? 0.12 : 0.88,
           direction: stop.designIndex % 2 === 0 ? 1 : -1,
           time: 1.8,
+          tickAt: 1.52,
+          inCenter: false,
+          resumeBgm: currentBgmName || (delivery.feverTime > 0 ? 'fever' : 'stage2'),
           result: null,
           points: 0,
           resultTime: 0
         };
-        playSfx('arrival');
+        pauseAllExternalBgm();
+        playSfx('handoffOpen');
       }
 
       function resolveHandoff(timedOut = false) {
@@ -1466,7 +1496,7 @@
 
         modal.result = result;
         modal.points = addDeliveryScore(baseScore);
-        modal.resultTime = 0.78;
+        modal.resultTime = 1.0;
         addHeartBurst(stop.x, 620, result === 'perfect' ? 12 : 8);
       }
 
@@ -1490,7 +1520,14 @@
             modal.marker = 0;
             modal.direction = 1;
           }
+          const inCenter = Math.abs(modal.marker - 0.5) <= 0.083;
+          if (inCenter && !modal.inCenter) playSfx('handoffCenter');
+          modal.inCenter = inCenter;
           modal.time -= dt;
+          if (modal.time <= modal.tickAt && modal.tickAt > 0) {
+            playSfx('handoffTick');
+            modal.tickAt -= 0.30;
+          }
           if (modal.time <= 0) resolveHandoff(true);
         } else {
           modal.resultTime -= dt;
@@ -1498,6 +1535,7 @@
             delivery.handoffModal = null;
             delivery.handoffTime = 0.2;
             delivery.routeClearTime = 0.8;
+            resumeAfterHandoff(modal);
           }
         }
         updateDeliveryHearts(dt);
@@ -1519,13 +1557,13 @@
         delivery.time -= dt;
         delivery.slowTime = Math.max(0, delivery.slowTime - dt);
         delivery.handoffTime = Math.max(0, delivery.handoffTime - dt);
-        delivery.feverTime = Math.max(0, delivery.feverTime - dt);
         delivery.routeClearTime = Math.max(0, delivery.routeClearTime - dt);
         if (delivery.handoffModal) {
           updateHandoff(dt);
           if (delivery.time <= 0 && !delivery.handoffModal.result) resolveHandoff(true);
           return;
         }
+        delivery.feverTime = Math.max(0, delivery.feverTime - dt);
 
         delivery.elapsed += dt;
         const feverActive = delivery.feverTime > 0;

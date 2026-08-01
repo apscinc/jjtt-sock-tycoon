@@ -1,0 +1,2637 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#294f64">
+  <meta name="description" content="양말을 만들고 판매한 만큼 기부하는 2단계 모바일 웹게임. 한 켤레 팔리면, 한 켤레 기부!">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="JJTT">
+  <meta property="og:title" content="JJTT 양말가게 타이쿤!">
+  <meta property="og:description" content="양말을 만들고 CJ와 함께 기부 배달을 떠나세요. 한 켤레 팔리면, 한 켤레 기부!">
+  <meta property="og:image" content="https://ecimg.cafe24img.com/pg2018b12298535008/encho825/game/jjtt-pixel-assets-v2/game-share-thumbnail.png">
+  <meta property="og:image:secure_url" content="https://ecimg.cafe24img.com/pg2018b12298535008/encho825/game/jjtt-pixel-assets-v2/game-share-thumbnail.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="JJTT 양말가게 타이쿤! 한 켤레 팔리면, 한 켤레 기부!">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="JJTT 양말가게 타이쿤!">
+  <meta name="twitter:description" content="양말을 만들고 CJ와 함께 기부 배달을 떠나세요.">
+  <meta name="twitter:image" content="https://ecimg.cafe24img.com/pg2018b12298535008/encho825/game/jjtt-pixel-assets-v2/game-share-thumbnail.png">
+  <meta name="twitter:image:alt" content="JJTT 양말가게 타이쿤 게임 공유 썸네일">
+  <link rel="image_src" href="https://ecimg.cafe24img.com/pg2018b12298535008/encho825/game/jjtt-pixel-assets-v2/game-share-thumbnail.png">
+  <title>JJTT 양말가게 타이쿤</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --navy: #294f64;
+      --sky: #8fbed1;
+      --cream: #f5eedc;
+      --green: #315d42;
+      --yellow: #f1ca62;
+      --coral: #c86450;
+      --ink: #17344a;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: #dbe8ed;
+      color: var(--ink);
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+      overscroll-behavior: none;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      padding: 14px;
+    }
+
+    .page {
+      width: min(100%, 440px);
+    }
+
+    .game-shell {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      border: 4px solid var(--navy);
+      border-radius: 24px;
+      background: var(--cream);
+      box-shadow: 0 16px 48px rgba(23, 52, 74, 0.24);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 9 / 16;
+      background: var(--cream);
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      background: rgba(23, 52, 74, 0.78);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    .overlay.show { display: flex; }
+
+    .panel {
+      width: 100%;
+      padding: 24px 20px 20px;
+      border: 3px solid var(--navy);
+      border-radius: 20px;
+      background: var(--cream);
+      box-shadow: 0 8px 0 rgba(23, 52, 74, 0.22);
+      text-align: center;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--navy);
+      font-size: clamp(25px, 7vw, 34px);
+      line-height: 1.12;
+    }
+
+    .overlay-body {
+      margin: 15px 0 18px;
+      color: #415a68;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .game-logo-lockup {
+      width: 100%;
+      margin: 0 auto 7px;
+      text-align: center;
+    }
+
+    .game-logo-lockup.compact {
+      margin-bottom: 4px;
+      text-align: center;
+    }
+
+    .game-logo-lockup:not(.compact) #overlayTitle { display: none; }
+    .game-logo-lockup.compact .game-title-logo { display: none; }
+
+    .game-title-logo {
+      display: block;
+      width: 100%;
+      max-width: 368px;
+      max-height: 246px;
+      margin: 0 auto;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    .panel strong { color: var(--green); }
+
+    .best-score-line {
+      display: none;
+      margin: -7px 0 16px;
+      padding: 10px 12px;
+      border: 2px solid var(--navy);
+      border-radius: 12px;
+      color: var(--navy);
+      background: rgba(241, 202, 98, 0.38);
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    .best-score-line.show { display: block; }
+    .best-score-line.new-record {
+      color: var(--coral);
+      background: rgba(239, 196, 184, 0.42);
+    }
+
+    .button-row {
+      display: grid;
+      gap: 9px;
+    }
+
+    button, .shop-link {
+      appearance: none;
+      width: 100%;
+      min-height: 48px;
+      border: 0;
+      border-radius: 12px;
+      font: inherit;
+      font-weight: 900;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    button {
+      color: var(--cream);
+      background: var(--navy);
+      box-shadow: 0 4px 0 #17344a;
+    }
+
+    button:active { transform: translateY(2px); box-shadow: 0 2px 0 #17344a; }
+
+    .sound-toggle {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      width: 36px;
+      min-height: 32px;
+      padding: 0;
+      border: 2px solid var(--cream);
+      border-radius: 10px;
+      color: var(--cream);
+      background: rgba(23, 52, 74, 0.78);
+      box-shadow: none;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .sound-toggle:active { transform: scale(0.96); box-shadow: none; }
+
+    .pause-toggle {
+      left: 52px;
+      font-size: 14px;
+    }
+
+    .share-button {
+      display: none;
+      color: var(--navy);
+      border: 2px solid var(--navy);
+      background: transparent;
+      box-shadow: none;
+      order: 2;
+    }
+
+    .share-button.show { display: block; }
+
+    .restart-button {
+      display: none;
+      color: var(--coral);
+      border: 2px solid var(--coral);
+      background: transparent;
+      box-shadow: none;
+      order: 4;
+    }
+
+    .restart-button.show { display: block; }
+
+    .shop-link {
+      display: none;
+      place-items: center;
+      min-height: 56px;
+      color: var(--navy);
+      border: 2px solid var(--navy);
+      background: var(--yellow);
+      box-shadow: 0 4px 0 #b28f35;
+      order: 1;
+    }
+
+    .shop-link.show { display: grid; }
+
+    #primaryButton { order: 3; }
+    #primaryButton.tertiary-button {
+      color: var(--coral);
+      border: 2px solid var(--coral);
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .receipt {
+      padding: 13px 15px;
+      border: 2px dashed var(--navy);
+      border-radius: 12px;
+      background: #fffdf6;
+      text-align: left;
+    }
+
+    .receipt-heading {
+      margin-bottom: 9px;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.09em;
+      text-align: center;
+    }
+
+    .receipt-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 4px 0;
+      color: #415a68;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .receipt-row strong { color: var(--navy); }
+    .receipt-total {
+      margin-top: 7px;
+      padding-top: 8px;
+      border-top: 2px solid rgba(41, 79, 100, 0.24);
+      color: var(--coral);
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .receipt-thanks {
+      margin-top: 9px;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .note {
+      margin: 10px 8px 0;
+      color: #536c78;
+      font-size: 12px;
+      line-height: 1.55;
+      text-align: center;
+    }
+
+    .sr-live {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 0; background: var(--navy); }
+      .page { width: 100%; }
+      .game-shell { border-width: 0; border-radius: 0; box-shadow: none; }
+      .note { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="game-shell" aria-label="JJTT 양말가게 타이쿤 게임">
+      <canvas id="game" width="540" height="960" aria-label="재봉, 스팀, 포장 공정을 탭해 양말을 판매하고 스케이트보드로 배달하는 게임"></canvas>
+      <button id="soundButton" class="sound-toggle" type="button" aria-label="소리 끄기" aria-pressed="false">♫</button>
+      <button id="pauseButton" class="sound-toggle pause-toggle" type="button" aria-label="게임 일시정지">Ⅱ</button>
+
+      <div id="overlay" class="overlay show">
+        <div class="panel">
+          <div id="startLogo" class="game-logo-lockup">
+            <img id="gameTitleLogo" class="game-title-logo" alt="JJTT 양말가게 타이쿤! 한 켤레 팔리면, 한 켤레 기부!">
+            <h1 id="overlayTitle">양말가게 타이쿤!</h1>
+          </div>
+          <div id="overlayBody" class="overlay-body">
+            <strong>1/2 양말 제작</strong> · 재봉 → 스팀 → 포장 → 판매<br>
+            <strong>2/2 기부 배달</strong> · 점프하고 목적지에서 전달
+          </div>
+          <div id="bestScoreLine" class="best-score-line" aria-live="polite"></div>
+          <div class="button-row">
+            <button id="primaryButton" type="button">70초 공장 열기</button>
+            <button id="restartButton" class="restart-button" type="button">처음부터 다시 하기</button>
+            <button id="shareButton" class="share-button" type="button">내 결과 공유하기</button>
+            <a id="shopLink" class="shop-link" href="#" target="_top">JJTT 양말 보러가기</a>
+          </div>
+        </div>
+      </div>
+
+      <div id="liveRegion" class="sr-live" aria-live="polite"></div>
+    </section>
+    <p class="note">모바일은 화면을 탭하고, PC는 마우스로 클릭해서 플레이하세요.</p>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+
+      // 실제 쇼핑몰 주소를 넣으면 결과 화면에 상품 링크가 나타납니다.
+      const SHOP_URL = 'https://jacktweet.com';
+
+      const canvas = document.getElementById('game');
+      const ctx = canvas.getContext('2d');
+      const overlay = document.getElementById('overlay');
+      const startLogo = document.getElementById('startLogo');
+      const gameTitleLogo = document.getElementById('gameTitleLogo');
+      const overlayTitle = document.getElementById('overlayTitle');
+      const overlayBody = document.getElementById('overlayBody');
+      const bestScoreLine = document.getElementById('bestScoreLine');
+      const primaryButton = document.getElementById('primaryButton');
+      const restartButton = document.getElementById('restartButton');
+      const soundButton = document.getElementById('soundButton');
+      const pauseButton = document.getElementById('pauseButton');
+      const shareButton = document.getElementById('shareButton');
+      const shopLink = document.getElementById('shopLink');
+      const liveRegion = document.getElementById('liveRegion');
+
+      const ASSET_BASE = 'https://ecimg.cafe24img.com/pg2018b12298535008/encho825/game/jjtt-pixel-assets-v2/';
+      const LOCAL_ASSET_BASE = 'jjtt-pixel-assets-v2/';
+      const AUDIO_ASSET_BASE = 'https://apscinc.github.io/jjtt-sock-tycoon/';
+      const assetFiles = {
+        factoryBg: 'factory-background.png',
+        villageRoute: 'village-route-panorama.png',
+        gameTitleLogo: 'game-title-logo.png',
+        transitionCj: 'transition-cj-sheet.png'
+      };
+      [
+        'cj-factory-idle-a', 'cj-factory-idle-b',
+        'cj-factory-sew-a', 'cj-factory-sew-b',
+        'cj-factory-fix-a', 'cj-factory-fix-b',
+        'cj-factory-carry-a', 'cj-factory-carry-b',
+        'cj-delivery-ride-a', 'cj-delivery-ride-b',
+        'cj-delivery-jump-a', 'cj-delivery-jump-b',
+        'cj-delivery-wobble-a', 'cj-delivery-wobble-b',
+        'cj-delivery-handoff-a', 'cj-delivery-handoff-b',
+        'customer-0-wait', 'customer-1-wait', 'customer-2-wait', 'customer-3-wait',
+        'customer-0-impatient', 'customer-1-impatient', 'customer-2-impatient', 'customer-3-impatient',
+        'customer-0-happy', 'customer-1-happy', 'customer-2-happy', 'customer-3-happy',
+        'npc-youth-wait', 'npc-fire-wait', 'npc-senior-wait',
+        'npc-youth-receive', 'npc-fire-receive', 'npc-senior-receive',
+        'machine-sew', 'machine-steam', 'machine-pack',
+        'sock-white-eye', 'sock-booby', 'sock-kingfisher',
+        'effect-thread-jam', 'effect-steam', 'display-tray',
+        'obstacle-puddle', 'obstacle-cones', 'obstacle-ball', 'effect-heart',
+        'feather-a', 'feather-b', 'effect-speed', 'booby-bird'
+      ].forEach(name => {
+        assetFiles[name] = `sprites/${name}.png`;
+      });
+      const pixelAssets = {};
+      Object.entries(assetFiles).forEach(([key, file]) => {
+        const image = new Image();
+        image.onerror = () => {
+          image.onerror = null;
+          image.src = `${LOCAL_ASSET_BASE}${file}`;
+        };
+        image.src = `${ASSET_BASE}${file}`;
+        pixelAssets[key] = image;
+      });
+      gameTitleLogo.onerror = () => {
+        gameTitleLogo.onerror = null;
+        gameTitleLogo.src = `${LOCAL_ASSET_BASE}${assetFiles.gameTitleLogo}`;
+      };
+      gameTitleLogo.src = `${ASSET_BASE}${assetFiles.gameTitleLogo}`;
+
+      const AUDIO_FILES = {
+        main: 'main-page.webm',
+        stage1: 'stage1-store.webm',
+        transition: 'stage-change.webm',
+        stage2: 'stage2-skateboard.webm',
+        fever: 'fever.webm',
+        finish: 'finish.webm'
+      };
+      const AUDIO_VOLUMES = {
+        main: 0.20,
+        stage1: 0.24,
+        transition: 0.32,
+        stage2: 0.25,
+        fever: 0.30,
+        finish: 0.32
+      };
+      const externalTracks = {};
+      Object.entries(AUDIO_FILES).forEach(([name, file]) => {
+        const audio = new Audio();
+        const track = {
+          audio,
+          file,
+          usingLocal: false,
+          failed: false,
+          targetVolume: 0
+        };
+        audio.preload = 'auto';
+        audio.playsInline = true;
+        audio.loop = ['main', 'stage1', 'stage2'].includes(name);
+        audio.volume = 0;
+        audio.addEventListener('error', () => {
+          if (!track.usingLocal) {
+            track.usingLocal = true;
+            audio.src = `${LOCAL_ASSET_BASE}audio/${file}`;
+            if (name === currentBgmName && externalAudioUnlocked && !audioMuted && !isPaused) safePlayExternalTrack(track);
+          } else {
+            track.failed = true;
+          }
+        });
+        audio.addEventListener('ended', () => {
+          if (name === 'finish' && phase === 'end') {
+            finishMusicCompleted = true;
+            switchExternalBgm('main', { restart: true });
+          }
+        });
+        audio.src = `${AUDIO_ASSET_BASE}${file}`;
+        externalTracks[name] = track;
+      });
+
+      const W = 540;
+      const H = 960;
+      const FACTORY_DURATION = 70;
+      const DELIVERY_DURATION = 33;
+      const TRANSITION_DURATION = 3;
+      const BEST_SCORE_KEY = 'jjtt-sock-tycoon-best-v1';
+      const DELIVERY_WORLD_SPEED = 119;
+      const DELIVERY_WORLD_WIDTH = W * 7;
+      const SEW_TIME = 5.5;
+      const STEAM_TIME = 2.5;
+      const PACK_TIME = 1.7;
+      const JAM_CHANCE = 0.24;
+      const STOCK_MAX = 9;
+
+      const C = {
+        navy: '#294f64',
+        dark: '#17344a',
+        sky: '#8fbed1',
+        paleSky: '#cfe3ec',
+        cream: '#f5eedc',
+        warm: '#e9d7c1',
+        green: '#315d42',
+        paleGreen: '#d9e7ce',
+        yellow: '#f1ca62',
+        coral: '#c86450',
+        paleCoral: '#efc4b8',
+        white: '#fffdf6',
+        floor: '#d7e3d8',
+        brown: '#8b6042',
+        road: '#615a58'
+      };
+
+      const stationColumns = [20, 193, 366];
+      const stationRows = [360, 470, 580];
+      const stationW = 154;
+      const stationH = 96;
+      const stockRect = { x: 20, y: 710, w: 500, h: 128 };
+
+      const designs = [
+        { name: 'WHITE-EYE', body: '#f5eedc', accent: '#315d42' },
+        { name: 'BOOBY', body: '#8fbed1', accent: '#f5eedc' },
+        { name: 'KINGFISHER', body: '#294f64', accent: '#f1ca62' }
+      ];
+
+      let phase = 'start';
+      let lastTime = 0;
+      let factory;
+      let delivery;
+      let transitionLeft = 0;
+      let transitionScene = -1;
+      let toast = { text: '', time: 0, color: C.navy };
+      let audioContext = null;
+      let masterGain = null;
+      let musicTimer = null;
+      let musicBeat = 0;
+      let audioMuted = false;
+      let externalAudioUnlocked = false;
+      let currentBgmName = null;
+      let finishMusicCompleted = false;
+      let isPaused = false;
+      let lastResult = null;
+      let personalBestScore = loadBestScore();
+
+      function playTone(frequency, duration = 0.1, type = 'square', volume = 0.035, delay = 0) {
+        if (!audioContext || !masterGain || audioMuted) return;
+        const start = audioContext.currentTime + delay;
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        oscillator.type = type;
+        oscillator.frequency.setValueAtTime(frequency, start);
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(volume, start + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+        oscillator.connect(gain);
+        gain.connect(masterGain);
+        oscillator.start(start);
+        oscillator.stop(start + duration + 0.03);
+      }
+
+      function playNoise(duration = 0.08, volume = 0.025) {
+        if (!audioContext || !masterGain || audioMuted) return;
+        const length = Math.max(1, Math.floor(audioContext.sampleRate * duration));
+        const buffer = audioContext.createBuffer(1, length, audioContext.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < length; i += 1) data[i] = Math.random() * 2 - 1;
+        const source = audioContext.createBufferSource();
+        const gain = audioContext.createGain();
+        gain.gain.setValueAtTime(volume, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration);
+        source.buffer = buffer;
+        source.connect(gain);
+        gain.connect(masterGain);
+        source.start();
+      }
+
+      function playSfx(name) {
+        if (name === 'tap') playTone(620, 0.06, 'square', 0.025);
+        else if (name === 'sew') playTone(310, 0.07, 'square', 0.026);
+        else if (name === 'transfer') {
+          playTone(480, 0.08, 'triangle', 0.035);
+          playTone(640, 0.1, 'triangle', 0.032, 0.08);
+        } else if (name === 'jam') {
+          playNoise(0.13, 0.03);
+          playTone(125, 0.18, 'sawtooth', 0.028);
+        } else if (name === 'fix') {
+          [440, 660, 880].forEach((note, index) => playTone(note, 0.1, 'square', 0.028, index * 0.07));
+        } else if (name === 'complete') {
+          [523, 659, 784].forEach((note, index) => playTone(note, 0.13, 'triangle', 0.036, index * 0.08));
+        } else if (name === 'wrong') {
+          playTone(190, 0.22, 'sawtooth', 0.032);
+        } else if (name === 'jump') {
+          playTone(420, 0.08, 'square', 0.028);
+          playTone(640, 0.1, 'square', 0.024, 0.055);
+        } else if (name === 'collect') playTone(920, 0.08, 'triangle', 0.032);
+        else if (name === 'fever') {
+          [659, 880, 1047, 1319].forEach((note, index) => playTone(note, 0.13, 'square', 0.034, index * 0.07));
+        } else if (name === 'hit') {
+          playNoise(0.1, 0.034);
+          playTone(115, 0.2, 'square', 0.025);
+        } else if (name === 'arrival') {
+          playTone(392, 0.12, 'triangle', 0.035);
+          playTone(523, 0.16, 'triangle', 0.035, 0.1);
+        } else if (name === 'perfect') {
+          [523, 659, 784, 1047].forEach((note, index) => playTone(note, 0.14, 'square', 0.038, index * 0.065));
+        } else if (name === 'good') {
+          playTone(440, 0.12, 'triangle', 0.034);
+          playTone(587, 0.16, 'triangle', 0.034, 0.09);
+        } else if (name === 'safe') playTone(330, 0.2, 'triangle', 0.03);
+        else if (name === 'shopClose') {
+          playTone(1047, 0.24, 'triangle', 0.042);
+          playTone(523, 0.34, 'square', 0.022, 0.08);
+          playNoise(0.10, 0.018);
+        } else if (name === 'packBag') {
+          [440, 554, 659].forEach((note, index) => playTone(note, 0.10, 'triangle', 0.032, index * 0.07));
+          playNoise(0.06, 0.010);
+        } else if (name === 'skateStart') {
+          playNoise(0.20, 0.018);
+          [523, 659, 784, 1047].forEach((note, index) => playTone(note, 0.13, 'square', 0.033, index * 0.07));
+        }
+        else if (name === 'end') {
+          [392, 494, 587, 784].forEach((note, index) => playTone(note, 0.42, 'triangle', 0.024, index * 0.06));
+        }
+      }
+
+      function musicTick() {
+        if (!audioContext || audioMuted || !masterGain || isPaused || phase === 'start' || phase === 'end') return;
+        const externalTrack = currentBgmName ? externalTracks[currentBgmName] : null;
+        if (externalTrack && !externalTrack.failed) return;
+        const feverActive = phase === 'delivery' && delivery && delivery.feverTime > 0 && !delivery.handoffModal;
+        if (feverActive) {
+          const feverLead = [784, 988, 1175, 1319, 1047, 1319, 1568, 1760];
+          const first = (musicBeat * 2) % feverLead.length;
+          playTone(feverLead[first], 0.075, 'square', 0.018);
+          playTone(feverLead[(first + 1) % feverLead.length], 0.075, 'square', 0.018, 0.095);
+          playTone(musicBeat % 2 ? 196 : 262, 0.16, 'sawtooth', 0.011);
+          playNoise(0.035, musicBeat % 2 ? 0.012 : 0.008);
+          musicBeat += 1;
+          return;
+        }
+        const factoryMelody = [262, 330, 392, 330, 294, 349, 440, 349];
+        const deliveryMelody = [392, 494, 587, 494, 440, 523, 659, 523];
+        const transitionMelody = [523, 659, 784, 1047, 659, 784, 1047, 1319];
+        const melody = phase === 'delivery' ? deliveryMelody : phase === 'transition' ? transitionMelody : factoryMelody;
+        const beat = musicBeat % melody.length;
+        playTone(melody[beat], phase === 'delivery' ? 0.11 : phase === 'transition' ? 0.10 : 0.15, 'square', phase === 'transition' ? 0.017 : 0.012);
+        if (beat % 2 === 0) playTone(melody[beat] / 2, 0.18, 'triangle', 0.009);
+        musicBeat += 1;
+      }
+
+      function safePlayExternalTrack(track) {
+        if (!track || track.failed || audioMuted || isPaused || !externalAudioUnlocked) return;
+        track.audio.muted = false;
+        const playPromise = track.audio.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+          playPromise.catch(() => {
+            // 자동재생 제한이나 로딩 지연 시 다음 사용자 입력에서 다시 시도합니다.
+          });
+        }
+      }
+
+      function switchExternalBgm(name, options = {}) {
+        const next = externalTracks[name];
+        if (!next) return;
+        if (currentBgmName === name) {
+          if (options.restart) {
+            try { next.audio.currentTime = 0; } catch (error) { /* 아직 메타데이터 로딩 중 */ }
+          }
+          safePlayExternalTrack(next);
+          return;
+        }
+
+        Object.entries(externalTracks).forEach(([trackName, track]) => {
+          track.targetVolume = trackName === name ? AUDIO_VOLUMES[name] : 0;
+        });
+        currentBgmName = name;
+        if (options.restart) {
+          try { next.audio.currentTime = 0; } catch (error) { /* 아직 메타데이터 로딩 중 */ }
+        }
+        safePlayExternalTrack(next);
+      }
+
+      function desiredBgmForPhase() {
+        if (phase === 'start') return 'main';
+        if (phase === 'factory') return 'stage1';
+        if (phase === 'transition') return 'transition';
+        if (phase === 'delivery') {
+          return delivery && delivery.feverTime > 0 && !delivery.handoffModal ? 'fever' : 'stage2';
+        }
+        if (phase === 'end') return finishMusicCompleted ? 'main' : 'finish';
+        return null;
+      }
+
+      function syncExternalBgmForPhase() {
+        const desired = desiredBgmForPhase();
+        if (!desired || desired === currentBgmName) return;
+        const restart = desired === 'transition'
+          || desired === 'fever'
+          || desired === 'finish'
+          || (desired === 'stage1' && factory && factory.elapsed < 0.2)
+          || (desired === 'stage2' && delivery && delivery.elapsed < 0.2);
+        switchExternalBgm(desired, { restart });
+      }
+
+      function updateExternalAudio(dt) {
+        const fadeStep = Math.min(1, dt / 0.30);
+        Object.entries(externalTracks).forEach(([name, track]) => {
+          const target = name === currentBgmName && !audioMuted && !isPaused ? AUDIO_VOLUMES[name] : 0;
+          track.targetVolume = target;
+          track.audio.muted = audioMuted;
+          track.audio.volume += (target - track.audio.volume) * fadeStep;
+          if (name !== currentBgmName && track.audio.volume < 0.006 && !track.audio.paused) {
+            track.audio.volume = 0;
+            track.audio.pause();
+          }
+        });
+      }
+
+      function pauseAllExternalBgm() {
+        Object.values(externalTracks).forEach(track => track.audio.pause());
+      }
+
+      function resumeCurrentExternalBgm() {
+        if (!currentBgmName) syncExternalBgmForPhase();
+        safePlayExternalTrack(externalTracks[currentBgmName]);
+      }
+
+      function ensureAudio() {
+        externalAudioUnlocked = true;
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass && !audioContext) {
+          audioContext = new AudioContextClass();
+          masterGain = audioContext.createGain();
+          masterGain.gain.value = audioMuted ? 0 : 0.68;
+          masterGain.connect(audioContext.destination);
+          musicTimer = window.setInterval(musicTick, 210);
+        }
+        if (audioContext && audioContext.state === 'suspended') audioContext.resume();
+        syncExternalBgmForPhase();
+        resumeCurrentExternalBgm();
+      }
+
+      function updateSoundButton() {
+        soundButton.textContent = audioMuted ? '×' : '♫';
+        soundButton.setAttribute('aria-label', audioMuted ? '소리 켜기' : '소리 끄기');
+        soundButton.setAttribute('aria-pressed', audioMuted ? 'true' : 'false');
+      }
+
+      function toggleAudio() {
+        ensureAudio();
+        audioMuted = !audioMuted;
+        if (masterGain) masterGain.gain.value = audioMuted ? 0 : 0.68;
+        Object.values(externalTracks).forEach(track => { track.audio.muted = audioMuted; });
+        if (audioMuted) pauseAllExternalBgm();
+        else resumeCurrentExternalBgm();
+        updateSoundButton();
+      }
+
+      function makeStation() {
+        return {
+          state: 'idle',
+          progress: 0,
+          product: null,
+          willJam: false,
+          jamAt: 0,
+          jammedOnce: false,
+          jamStart: 0
+        };
+      }
+
+      function resetFactory() {
+        factory = {
+          time: FACTORY_DURATION,
+          elapsed: 0,
+          score: 0,
+          sold: 0,
+          donations: 0,
+          stock: 0,
+          served: 0,
+          missed: 0,
+          combo: 0,
+          bestCombo: 0,
+          customer: null,
+          customerExit: null,
+          customerDelay: 0.45,
+          firstCustomer: true,
+          lastCustomerDesignIndex: -1,
+          workerActionRow: 0,
+          workerActionTime: 0,
+          wrongOrderTime: 0,
+          sew: Array.from({ length: 3 }, makeStation),
+          steam: Array.from({ length: 3 }, makeStation),
+          pack: Array.from({ length: 3 }, makeStation),
+          stockDesigns: []
+        };
+      }
+
+      function startGame() {
+        resetFactory();
+        isPaused = false;
+        finishMusicCompleted = false;
+        lastResult = null;
+        primaryButton.classList.remove('tertiary-button');
+        bestScoreLine.classList.remove('show', 'new-record');
+        restartButton.classList.remove('show');
+        shareButton.classList.remove('show');
+        shopLink.classList.remove('show');
+        hideOverlay();
+        phase = 'factory';
+        ensureAudio();
+        switchExternalBgm('stage1', { restart: true });
+        lastTime = performance.now();
+        announce('70초 양말 공장을 시작합니다.');
+        showToast('빈 재봉틀을 탭하세요!', C.green, 2.2);
+        playSfx('complete');
+      }
+
+      function showOverlay(title, body, buttonText, handler) {
+        startLogo.classList.add('compact');
+        overlayTitle.innerHTML = title;
+        overlayBody.innerHTML = body;
+        primaryButton.textContent = buttonText;
+        primaryButton.onclick = handler;
+        overlay.classList.add('show');
+      }
+
+      function hideOverlay() {
+        overlay.classList.remove('show');
+      }
+
+      function loadBestScore() {
+        try {
+          const stored = Number(window.localStorage.getItem(BEST_SCORE_KEY));
+          return Number.isFinite(stored) && stored > 0 ? Math.floor(stored) : 0;
+        } catch (error) {
+          return 0;
+        }
+      }
+
+      function saveBestScore(value) {
+        personalBestScore = Math.max(personalBestScore, Math.floor(value));
+        try {
+          window.localStorage.setItem(BEST_SCORE_KEY, personalBestScore.toString());
+        } catch (error) {
+          // 저장이 제한된 브라우저에서도 현재 실행 중에는 기록을 유지합니다.
+        }
+      }
+
+      function showBestScore(isNewRecord = false) {
+        bestScoreLine.textContent = isNewRecord
+          ? `NEW RECORD! · 내 최고 점수 ${personalBestScore.toLocaleString()}점`
+          : `내 최고 점수 ${personalBestScore.toLocaleString()}점`;
+        bestScoreLine.classList.toggle('new-record', isNewRecord);
+        bestScoreLine.classList.add('show');
+      }
+
+      function pauseGame() {
+        if (isPaused || !['factory', 'transition', 'delivery'].includes(phase)) return;
+        isPaused = true;
+        pauseAllExternalBgm();
+        primaryButton.classList.remove('tertiary-button');
+        bestScoreLine.classList.remove('show', 'new-record');
+        restartButton.textContent = '처음부터 다시 하기';
+        restartButton.onclick = startGame;
+        restartButton.classList.add('show');
+        shareButton.classList.remove('show');
+        shopLink.classList.remove('show');
+        showOverlay(
+          '잠시 쉬는 중',
+          '게임 시간과 모든 움직임이 멈췄어요.<br>준비되면 이어서 플레이하세요.',
+          '게임 계속하기',
+          resumeGame
+        );
+        announce('게임이 일시정지되었습니다.');
+      }
+
+      function resumeGame() {
+        isPaused = false;
+        restartButton.classList.remove('show');
+        hideOverlay();
+        ensureAudio();
+        resumeCurrentExternalBgm();
+        lastTime = performance.now();
+        announce('게임을 다시 시작합니다.');
+      }
+
+      function announce(text) {
+        liveRegion.textContent = text;
+      }
+
+      function showToast(text, color = C.navy, seconds = 1.35) {
+        toast.text = text;
+        toast.time = seconds;
+        toast.color = color;
+        announce(text);
+      }
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function randomBetween(min, max) {
+        return min + Math.random() * (max - min);
+      }
+
+      function assetReady(key) {
+        const image = pixelAssets[key];
+        return Boolean(image && image.complete && image.naturalWidth > 0);
+      }
+
+      function drawSprite(key, anchorX, anchorY, maxWidth, maxHeight, options = {}) {
+        if (!assetReady(key)) return false;
+        const image = pixelAssets[key];
+        const scale = Math.min(maxWidth / image.naturalWidth, maxHeight / image.naturalHeight);
+        const width = image.naturalWidth * scale;
+        const height = image.naturalHeight * scale;
+        const originX = options.originX ?? 0.5;
+        const originY = options.originY ?? 1;
+        ctx.save();
+        ctx.globalAlpha = options.alpha ?? 1;
+        ctx.imageSmoothingEnabled = false;
+        if (options.flipX) {
+          ctx.translate(anchorX, 0);
+          ctx.scale(-1, 1);
+          ctx.drawImage(image, -width * originX, anchorY - height * originY, width, height);
+        } else {
+          ctx.drawImage(image, anchorX - width * originX, anchorY - height * originY, width, height);
+        }
+        ctx.restore();
+        return true;
+      }
+
+      function drawSpriteInBox(key, x, y, width, height, alpha = 1) {
+        return drawSprite(key, x + width / 2, y + height / 2, width, height, {
+          originX: 0.5,
+          originY: 0.5,
+          alpha
+        });
+      }
+
+      function designIndexOf(design) {
+        return Math.max(0, designs.findIndex(item => item.name === design.name));
+      }
+
+      function drawSockAsset(design, x, y, width, height) {
+        const keys = ['sock-white-eye', 'sock-booby', 'sock-kingfisher'];
+        return drawSpriteInBox(keys[designIndexOf(design)], x, y, width, height);
+      }
+
+      function roundRect(x, y, w, h, r, fill, stroke, lineWidth = 2) {
+        const radius = Math.min(r, w / 2, h / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.arcTo(x + w, y, x + w, y + h, radius);
+        ctx.arcTo(x + w, y + h, x, y + h, radius);
+        ctx.arcTo(x, y + h, x, y, radius);
+        ctx.arcTo(x, y, x + w, y, radius);
+        ctx.closePath();
+        if (fill) {
+          ctx.fillStyle = fill;
+          ctx.fill();
+        }
+        if (stroke) {
+          ctx.strokeStyle = stroke;
+          ctx.lineWidth = lineWidth;
+          ctx.stroke();
+        }
+      }
+
+      function text(value, x, y, size, color, align = 'left', weight = 700) {
+        ctx.fillStyle = color;
+        ctx.font = `${weight} ${size}px "Apple SD Gothic Neo", "Noto Sans KR", sans-serif`;
+        ctx.textAlign = align;
+        ctx.textBaseline = 'middle';
+        ctx.fillText(value, x, y);
+      }
+
+      function drawProgress(x, y, w, value, color) {
+        roundRect(x, y, w, 8, 4, 'rgba(23,52,74,0.16)');
+        if (value > 0) roundRect(x, y, w * clamp(value, 0, 1), 8, 4, color);
+      }
+
+      function drawSock(x, y, scale, design, flip = false) {
+        ctx.save();
+        ctx.translate(x, y);
+        if (flip) ctx.scale(-1, 1);
+        ctx.fillStyle = design.body;
+        ctx.strokeStyle = C.dark;
+        ctx.lineWidth = Math.max(1.5, scale * 1.5);
+        ctx.beginPath();
+        ctx.moveTo(-8 * scale, -18 * scale);
+        ctx.lineTo(8 * scale, -18 * scale);
+        ctx.lineTo(8 * scale, 3 * scale);
+        ctx.quadraticCurveTo(9 * scale, 11 * scale, 17 * scale, 12 * scale);
+        ctx.lineTo(24 * scale, 12 * scale);
+        ctx.quadraticCurveTo(28 * scale, 12 * scale, 28 * scale, 17 * scale);
+        ctx.quadraticCurveTo(28 * scale, 22 * scale, 22 * scale, 22 * scale);
+        ctx.lineTo(5 * scale, 22 * scale);
+        ctx.quadraticCurveTo(-8 * scale, 20 * scale, -8 * scale, 7 * scale);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = design.accent;
+        ctx.fillRect(-8 * scale, -18 * scale, 16 * scale, 5 * scale);
+        ctx.fillRect(-8 * scale, -10 * scale, 16 * scale, 3 * scale);
+        ctx.restore();
+      }
+
+      function drawPackage(x, y, scale, design) {
+        roundRect(x - 22 * scale, y - 18 * scale, 44 * scale, 36 * scale, 5 * scale, design.body, C.dark, 1.5 * scale);
+        ctx.fillStyle = design.accent;
+        ctx.fillRect(x - 22 * scale, y - 4 * scale, 44 * scale, 7 * scale);
+        text('JJTT', x, y + 10 * scale, 8 * scale, C.dark, 'center', 900);
+      }
+
+      function spawnCustomer() {
+        let qty;
+        if (factory.firstCustomer) {
+          qty = 1;
+        } else if (factory.elapsed < 24) {
+          qty = Math.random() < 0.62 ? 1 : 2;
+        } else if (factory.elapsed < 50) {
+          qty = Math.random() < 0.5 ? 1 : 2;
+        } else {
+          qty = Math.random() < 0.35 ? 1 : 2;
+        }
+
+        const patienceByQty = [0, 18, 21];
+        const latePenalty = factory.elapsed > 58 ? 1.5 : 0;
+        const maxPatience = factory.firstCustomer ? 25 : patienceByQty[qty] - latePenalty;
+        let designIndex = factory.firstCustomer ? 0 : Math.floor(Math.random() * designs.length);
+        if (designIndex === factory.lastCustomerDesignIndex && designs.length > 1) {
+          designIndex = (designIndex + 1 + Math.floor(Math.random() * (designs.length - 1))) % designs.length;
+        }
+        factory.lastCustomerDesignIndex = designIndex;
+        factory.customer = {
+          qty,
+          remaining: qty,
+          design: designs[designIndex],
+          designIndex,
+          patience: maxPatience,
+          maxPatience,
+          look: factory.served % 4
+        };
+        factory.firstCustomer = false;
+        announce(`손님이 ${designs[designIndex].name} 양말 ${qty}켤레를 주문했습니다.`);
+      }
+
+      function showWorkerAction(row, seconds = 0.75) {
+        factory.workerActionRow = row;
+        factory.workerActionTime = seconds;
+      }
+
+      function startSew(index) {
+        const s = factory.sew[index];
+        if (s.state !== 'idle') return;
+        const product = designs[index % designs.length];
+        s.state = 'sewing';
+        s.progress = 0;
+        s.product = product;
+        s.willJam = Math.random() < JAM_CHANCE;
+        s.jamAt = randomBetween(SEW_TIME * 0.34, SEW_TIME * 0.76);
+        s.jammedOnce = false;
+        showWorkerAction(1);
+        playSfx('sew');
+      }
+
+      function preferredEmpty(stations, preferredIndex) {
+        if (stations[preferredIndex].state === 'idle') return preferredIndex;
+        return stations.findIndex(s => s.state === 'idle');
+      }
+
+      function moveSewToSteam(index) {
+        const source = factory.sew[index];
+        if (source.state !== 'sewDone') return;
+        const targetIndex = preferredEmpty(factory.steam, index);
+        if (targetIndex < 0) {
+          showToast('스팀기가 모두 사용 중이에요!', C.coral);
+          return;
+        }
+        const target = factory.steam[targetIndex];
+        target.state = 'steaming';
+        target.progress = 0;
+        target.product = source.product;
+        Object.assign(source, makeStation());
+        factory.score += 12;
+        showWorkerAction(3, 0.65);
+        playSfx('transfer');
+      }
+
+      function moveSteamToPack(index) {
+        const source = factory.steam[index];
+        if (source.state !== 'steamDone') return;
+        const targetIndex = preferredEmpty(factory.pack, index);
+        if (targetIndex < 0) {
+          showToast('포장대가 모두 사용 중이에요!', C.coral);
+          return;
+        }
+        const target = factory.pack[targetIndex];
+        target.state = 'packing';
+        target.progress = 0;
+        target.product = source.product;
+        Object.assign(source, makeStation());
+        factory.score += 12;
+        showWorkerAction(3, 0.65);
+        playSfx('transfer');
+      }
+
+      function clearJam(index) {
+        const s = factory.sew[index];
+        if (s.state !== 'jammed') return;
+        const reaction = factory.elapsed - s.jamStart;
+        s.state = 'sewing';
+        s.jammedOnce = true;
+        showWorkerAction(2, 0.9);
+        playSfx('fix');
+        if (reaction <= 1.2) {
+          factory.score += 25;
+          showToast('빠른 수리! +25', C.green);
+        } else {
+          showToast('실 걸림 해결!', C.green);
+        }
+      }
+
+      function serveOne(stockIndex) {
+        if (!factory.customer) {
+          showToast('손님을 기다려주세요!', C.coral);
+          return;
+        }
+        if (factory.stock <= 0) {
+          showToast('완성된 양말이 없어요!', C.coral);
+          return;
+        }
+        if (stockIndex < 0 || stockIndex >= factory.stockDesigns.length) {
+          showToast('완성된 낱개 양말을 직접 탭해주세요!', C.coral);
+          return;
+        }
+
+        const selectedDesign = factory.stockDesigns[stockIndex];
+        if (!selectedDesign || selectedDesign.name !== factory.customer.design.name) {
+          factory.wrongOrderTime = 0.85;
+          factory.customer.wrongTime = 0.85;
+          showToast(`앗! 주문은 ${factory.customer.design.name}예요`, C.coral, 1.15);
+          announce(`주문과 다른 양말입니다. ${factory.customer.design.name} 양말을 골라주세요.`);
+          playSfx('wrong');
+          return;
+        }
+
+        factory.stock -= 1;
+        factory.stockDesigns.splice(stockIndex, 1);
+        factory.customer.remaining -= 1;
+        factory.sold += 1;
+        factory.donations += 1;
+        factory.score += 100;
+        showWorkerAction(3, 0.75);
+
+        if (factory.customer.remaining <= 0) {
+          const speedBonus = Math.round((factory.customer.patience / factory.customer.maxPatience) * 50);
+          factory.combo += 1;
+          factory.bestCombo = Math.max(factory.bestCombo, factory.combo);
+          const comboBonus = Math.min(5, factory.combo) * 20;
+          factory.score += speedBonus + comboBonus;
+          factory.served += 1;
+          showToast(`주문 완료! 콤보 ×${factory.combo}`, C.green, 1.1);
+          factory.customerExit = { ...factory.customer, mood: 'happy', time: 0.75 };
+          factory.customer = null;
+          factory.customerDelay = randomBetween(0.8, 1.35);
+          playSfx('complete');
+        } else {
+          playSfx('tap');
+        }
+      }
+
+      function finishPackage(station) {
+        if (factory.stock >= STOCK_MAX) {
+          station.state = 'packDone';
+          return;
+        }
+        factory.stock += 1;
+        factory.stockDesigns.push(station.product || designs[0]);
+        factory.score += 10;
+        Object.assign(station, makeStation());
+      }
+
+      function updateFactory(dt) {
+        factory.time -= dt;
+        factory.elapsed += dt;
+        factory.workerActionTime = Math.max(0, factory.workerActionTime - dt);
+        factory.wrongOrderTime = Math.max(0, factory.wrongOrderTime - dt);
+        if (factory.customerExit) {
+          factory.customerExit.time -= dt;
+          if (factory.customerExit.time <= 0) factory.customerExit = null;
+        }
+        if (factory.customer && factory.customer.wrongTime) {
+          factory.customer.wrongTime = Math.max(0, factory.customer.wrongTime - dt);
+        }
+
+        if (factory.time <= 0) {
+          factory.time = 0;
+          phase = 'transition';
+          transitionLeft = TRANSITION_DURATION;
+          transitionScene = -1;
+          announce(`1단계 장사가 끝났습니다. ${factory.donations}켤레를 가지고 2단계 기부 배달을 시작합니다.`);
+          return;
+        }
+
+        if (factory.customer) {
+          factory.customer.patience -= dt;
+          if (factory.customer.patience <= 0) {
+            factory.missed += 1;
+            factory.combo = 0;
+            factory.score = Math.max(0, factory.score - 100);
+            factory.customer = null;
+            factory.customerDelay = randomBetween(0.8, 1.3);
+            showToast('손님이 기다리다 돌아갔어요', C.coral, 1.25);
+          }
+        } else {
+          factory.customerDelay -= dt;
+          if (factory.customerDelay <= 0 && factory.time > 1.5) spawnCustomer();
+        }
+
+        factory.sew.forEach(s => {
+          if (s.state === 'sewing') {
+            s.progress += dt;
+            if (s.willJam && !s.jammedOnce && s.progress >= s.jamAt) {
+              s.state = 'jammed';
+              s.jamStart = factory.elapsed;
+              showToast('실이 걸렸어요! 재봉틀을 탭!', C.coral, 1.1);
+              playSfx('jam');
+            } else if (s.progress >= SEW_TIME) {
+              s.progress = SEW_TIME;
+              s.state = 'sewDone';
+            }
+          }
+        });
+
+        factory.steam.forEach(s => {
+          if (s.state === 'steaming') {
+            s.progress += dt;
+            if (s.progress >= STEAM_TIME) {
+              s.progress = STEAM_TIME;
+              s.state = 'steamDone';
+            }
+          }
+        });
+
+        factory.pack.forEach(s => {
+          if (s.state === 'packing') {
+            s.progress += dt;
+            if (s.progress >= PACK_TIME) {
+              s.progress = PACK_TIME;
+              finishPackage(s);
+            }
+          } else if (s.state === 'packDone' && factory.stock < STOCK_MAX) {
+            finishPackage(s);
+          }
+        });
+      }
+
+      function splitDonationBatches(total) {
+        const base = Math.floor(total / 3);
+        const remainder = total % 3;
+        return [0, 1, 2].map(i => base + (i < remainder ? 1 : 0));
+      }
+
+      function resetDelivery() {
+        const batches = splitDonationBatches(factory.donations);
+        const startMultiplier = 1 + Math.min(5, factory.bestCombo) * 0.1;
+        delivery = {
+          time: DELIVERY_DURATION,
+          elapsed: 0,
+          score: factory.score,
+          startMultiplier,
+          playerY: 702,
+          playerVY: 0,
+          onGround: true,
+          slowTime: 0,
+          handoffTime: 0,
+          perfectStops: 0,
+          timingStreak: 0,
+          bestTimingStreak: 0,
+          deliveredStops: 0,
+          featherCharge: 0,
+          feathersCollected: 0,
+          feverTime: 0,
+          feverCount: 0,
+          worldOffset: 0,
+          routeClearTime: 0,
+          handoffModal: null,
+          hearts: [],
+          obstacles: [
+            { spawnAt: 1.3, x: 620, type: 'widePuddle', hit: false },
+            { spawnAt: 6.8, x: 620, type: 'doubleCone', hit: false },
+            { spawnAt: 8.4, x: 620, type: 'ball', hit: false },
+            { spawnAt: 10.8, x: 620, type: 'widePuddle', hit: false },
+            { spawnAt: 15.1, x: 620, type: 'doubleCone', hit: false },
+            { spawnAt: 18.5, x: 620, type: 'ball', hit: false },
+            { spawnAt: 22.0, x: 620, type: 'widePuddle', hit: false }
+          ],
+          feathers: [
+            { spawnAt: 0.6, x: 620, y: 700, collected: false },
+            { spawnAt: 2.0, x: 620, y: 632, collected: false },
+            { spawnAt: 3.6, x: 620, y: 700, collected: false },
+            { spawnAt: 5.2, x: 620, y: 632, collected: false },
+            { spawnAt: 7.0, x: 620, y: 700, collected: false },
+            { spawnAt: 9.0, x: 620, y: 632, collected: false },
+            { spawnAt: 10.8, x: 620, y: 700, collected: false },
+            { spawnAt: 12.4, x: 620, y: 632, collected: false },
+            { spawnAt: 14.4, x: 620, y: 700, collected: false },
+            { spawnAt: 16.0, x: 620, y: 632, collected: false },
+            { spawnAt: 17.8, x: 620, y: 700, collected: false },
+            { spawnAt: 19.8, x: 620, y: 632, collected: false },
+            { spawnAt: 21.6, x: 620, y: 700, collected: false },
+            { spawnAt: 23.0, x: 620, y: 700, collected: false }
+          ],
+          stops: [
+            { spawnAt: 5.7, worldX: 960, x: 960, npc: 'youth', designIndex: 0, label: '아동·청소년 지원기관', short: '아동 지원', batch: batches[0], done: false, perfect: false, modalStarted: false },
+            { spawnAt: 14.3, worldX: 1970, x: 1970, npc: 'fire', designIndex: 1, label: '소방·구급대', short: '소방·구급', batch: batches[1], done: false, perfect: false, modalStarted: false },
+            { spawnAt: 23.0, worldX: 3010, x: 3010, npc: 'senior', designIndex: 2, label: '어르신 복지관', short: '어르신 복지관', batch: batches[2], done: false, perfect: false, modalStarted: false }
+          ]
+        };
+      }
+
+      function startDelivery() {
+        resetDelivery();
+        phase = 'delivery';
+        showToast('탭해서 점프 · 목적지에서는 전달 게이지!', C.green, 2.4);
+        playSfx('arrival');
+      }
+
+      function activeDeliveryStop() {
+        if (!delivery) return null;
+        if (delivery.handoffModal) return delivery.handoffModal.stop;
+        return delivery.stops.find(stop => !stop.done && delivery.elapsed >= stop.spawnAt && stop.x >= 105 && stop.x <= 285) || null;
+      }
+
+      function approachingDeliveryStop() {
+        if (!delivery || delivery.handoffModal) return null;
+        return delivery.stops.find(stop => (
+          !stop.done &&
+          !stop.modalStarted &&
+          delivery.elapsed >= stop.spawnAt &&
+          stop.x > 285 &&
+          stop.x <= 500
+        )) || null;
+      }
+
+      function destinationSafetyActive() {
+        return Boolean(delivery.handoffModal) || Boolean(approachingDeliveryStop()) || delivery.routeClearTime > 0;
+      }
+
+      function addDeliveryScore(base) {
+        const feverMultiplier = delivery.feverTime > 0 ? 2 : 1;
+        const points = Math.round(base * delivery.startMultiplier * feverMultiplier);
+        delivery.score += points;
+        return points;
+      }
+
+      function addHeartBurst(x, y, count = 9) {
+        for (let i = 0; i < count; i += 1) {
+          delivery.hearts.push({
+            x: x + randomBetween(-42, 42),
+            y: y + randomBetween(-20, 35),
+            life: randomBetween(0.7, 1.25),
+            vy: randomBetween(-65, -30)
+          });
+        }
+      }
+
+      function startHandoff(stop) {
+        if (stop.done || stop.modalStarted || delivery.handoffModal) return;
+        stop.modalStarted = true;
+        delivery.playerY = 702;
+        delivery.playerVY = 0;
+        delivery.onGround = true;
+        delivery.handoffTime = 3;
+        delivery.handoffModal = {
+          stop,
+          marker: stop.designIndex % 2 === 0 ? 0.12 : 0.88,
+          direction: stop.designIndex % 2 === 0 ? 1 : -1,
+          time: 1.8,
+          result: null,
+          points: 0,
+          resultTime: 0
+        };
+        playSfx('arrival');
+      }
+
+      function resolveHandoff(timedOut = false) {
+        const modal = delivery.handoffModal;
+        if (!modal || modal.result) return;
+        const distance = Math.abs(modal.marker - 0.5);
+        const result = timedOut ? 'safe' : distance <= 0.075 ? 'perfect' : distance <= 0.19 ? 'good' : 'safe';
+        const stop = modal.stop;
+        stop.done = true;
+        stop.perfect = result === 'perfect';
+        delivery.deliveredStops += 1;
+
+        let baseScore = 100;
+        if (result === 'perfect') {
+          delivery.perfectStops += 1;
+          delivery.timingStreak += 1;
+          delivery.bestTimingStreak = Math.max(delivery.bestTimingStreak, delivery.timingStreak);
+          baseScore = 300 + Math.max(0, delivery.timingStreak - 1) * 70;
+          playSfx('perfect');
+        } else if (result === 'good') {
+          delivery.timingStreak = 0;
+          baseScore = 180;
+          playSfx('good');
+        } else {
+          delivery.timingStreak = 0;
+          playSfx('safe');
+        }
+
+        modal.result = result;
+        modal.points = addDeliveryScore(baseScore);
+        modal.resultTime = 0.78;
+        addHeartBurst(stop.x, 620, result === 'perfect' ? 12 : 8);
+      }
+
+      function updateDeliveryHearts(dt) {
+        delivery.hearts.forEach(h => {
+          h.life -= dt;
+          h.y += h.vy * dt;
+        });
+        delivery.hearts = delivery.hearts.filter(h => h.life > 0);
+      }
+
+      function updateHandoff(dt) {
+        const modal = delivery.handoffModal;
+        if (!modal) return;
+        if (!modal.result) {
+          modal.marker += modal.direction * dt * 0.92;
+          if (modal.marker >= 1) {
+            modal.marker = 1;
+            modal.direction = -1;
+          } else if (modal.marker <= 0) {
+            modal.marker = 0;
+            modal.direction = 1;
+          }
+          modal.time -= dt;
+          if (modal.time <= 0) resolveHandoff(true);
+        } else {
+          modal.resultTime -= dt;
+          if (modal.resultTime <= 0) {
+            delivery.handoffModal = null;
+            delivery.handoffTime = 0.2;
+            delivery.routeClearTime = 0.8;
+          }
+        }
+        updateDeliveryHearts(dt);
+      }
+
+      function deliveryTap() {
+        if (delivery.handoffModal) {
+          if (!delivery.handoffModal.result) resolveHandoff(false);
+          return;
+        }
+        if (delivery.onGround) {
+          delivery.playerVY = -650;
+          delivery.onGround = false;
+          playSfx('jump');
+        }
+      }
+
+      function updateDelivery(dt) {
+        delivery.time -= dt;
+        delivery.slowTime = Math.max(0, delivery.slowTime - dt);
+        delivery.handoffTime = Math.max(0, delivery.handoffTime - dt);
+        delivery.feverTime = Math.max(0, delivery.feverTime - dt);
+        delivery.routeClearTime = Math.max(0, delivery.routeClearTime - dt);
+        if (delivery.handoffModal) {
+          updateHandoff(dt);
+          if (delivery.time <= 0 && !delivery.handoffModal.result) resolveHandoff(true);
+          return;
+        }
+
+        delivery.elapsed += dt;
+        const feverActive = delivery.feverTime > 0;
+        const worldSpeed = feverActive ? 285 : delivery.slowTime > 0 ? 150 : 235;
+        delivery.worldOffset = Math.min(DELIVERY_WORLD_WIDTH - W, delivery.elapsed * DELIVERY_WORLD_SPEED);
+        delivery.stops.forEach(stop => {
+          stop.x = stop.worldX - delivery.worldOffset;
+          if (delivery.elapsed >= stop.spawnAt && !stop.done && !stop.modalStarted && stop.x <= 230 && stop.x >= 150) {
+            startHandoff(stop);
+          }
+        });
+        const safetyActive = destinationSafetyActive();
+
+        delivery.playerVY += 1550 * dt;
+        delivery.playerY += delivery.playerVY * dt;
+        if (delivery.playerY >= 702) {
+          delivery.playerY = 702;
+          delivery.playerVY = 0;
+          delivery.onGround = true;
+        }
+
+        delivery.obstacles.forEach(o => {
+          if (delivery.elapsed < o.spawnAt) return;
+          o.x -= (safetyActive ? 430 : worldSpeed) * dt;
+          if (safetyActive) return;
+          const playerBottom = delivery.playerY + 62;
+          const halfWidth = o.type === 'widePuddle' ? 58 : o.type === 'doubleCone' ? 44 : 27;
+          const heightLine = o.type === 'ball' ? 735 : o.type === 'doubleCone' ? 741 : 750;
+          const colliding = !o.hit && Math.abs(o.x - 112) < halfWidth + 27 && playerBottom > heightLine;
+          if (colliding) {
+            o.hit = true;
+            if (feverActive) {
+              const points = addDeliveryScore(60);
+              showToast(`피버 돌파! +${points}`, C.yellow, 0.75);
+              playSfx('collect');
+            } else {
+              delivery.slowTime = 1.1;
+              delivery.score = Math.max(0, delivery.score - 50);
+              showToast('괜찮아요! 다시 달려요', C.coral, 1.0);
+              playSfx('hit');
+            }
+          }
+        });
+
+        const deliveryFocusActive = Boolean(activeDeliveryStop()) || safetyActive;
+        if (!deliveryFocusActive) {
+          delivery.feathers.forEach(feather => {
+            if (delivery.elapsed < feather.spawnAt || feather.collected) return;
+            feather.x -= worldSpeed * dt;
+            const closeX = Math.abs(feather.x - 112) < 42;
+            const closeY = feather.y >= delivery.playerY - 48 && feather.y <= delivery.playerY + 70;
+            if (closeX && closeY) {
+              feather.collected = true;
+              delivery.feathersCollected += 1;
+              delivery.featherCharge += 1;
+              addDeliveryScore(40);
+              playSfx('collect');
+              if (delivery.featherCharge >= 5) {
+                delivery.featherCharge = 0;
+                delivery.feverTime = 4;
+                delivery.feverCount += 1;
+                showToast('GOOD THINGS FEVER! 4초', C.yellow, 1.35);
+                playSfx('fever');
+              }
+            }
+          });
+        } else {
+          delivery.feathers.forEach(feather => {
+            if (delivery.elapsed < feather.spawnAt || feather.collected) return;
+            feather.x -= 430 * dt;
+          });
+        }
+
+        delivery.stops.forEach(stop => {
+          if (delivery.elapsed < stop.spawnAt) return;
+          if (!stop.done && stop.x < 48) {
+            stop.done = true;
+            delivery.deliveredStops += 1;
+            delivery.timingStreak = 0;
+            showToast(`${stop.short} 안전 배달 완료`, C.navy, 1.0);
+            playSfx('safe');
+          }
+        });
+
+        updateDeliveryHearts(dt);
+
+        if (delivery.time <= 0) {
+          delivery.time = 0;
+          phase = 'end';
+          playSfx('end');
+          showFinal();
+        }
+      }
+
+      function showFinal() {
+        const grade = factory.donations >= 24 && factory.missed === 0 && delivery.perfectStops >= 2
+          ? 'S'
+          : factory.donations >= 19
+            ? 'A'
+            : factory.donations >= 13
+              ? 'B'
+              : 'C';
+
+        const finalScore = delivery.score;
+        const isNewRecord = finalScore > personalBestScore;
+        if (isNewRecord) saveBestScore(finalScore);
+        lastResult = {
+          score: finalScore,
+          grade,
+          sold: factory.sold,
+          donations: factory.donations,
+          perfectStops: delivery.perfectStops,
+          feverCount: delivery.feverCount
+        };
+        showOverlay(
+          `좋은 일<br>배달 완료!`,
+          `<div class="receipt">
+             <div class="receipt-heading">GOOD THINGS RECEIPT</div>
+             <div class="receipt-row"><span>판매한 양말</span><strong>${factory.sold}켤레</strong></div>
+             <div class="receipt-row"><span>기부한 양말</span><strong>${factory.donations}켤레</strong></div>
+             <div class="receipt-row"><span>완벽 전달</span><strong>${delivery.perfectStops}/3</strong></div>
+             <div class="receipt-row"><span>전달 최고 연속</span><strong>×${delivery.bestTimingStreak}</strong></div>
+             <div class="receipt-row"><span>피버 타임</span><strong>${delivery.feverCount}회</strong></div>
+             <div class="receipt-row receipt-total"><span>최종 점수</span><strong>${finalScore.toLocaleString()} · ${grade}등급</strong></div>
+           </div>
+           <div class="receipt-thanks">한 켤레 팔리면, 한 켤레 기부!<br>JJTT와 함께해주셔서 고마워요.</div>`,
+          '다시 도전하기',
+          startGame
+        );
+
+        primaryButton.classList.add('tertiary-button');
+        showBestScore(isNewRecord);
+        restartButton.classList.remove('show');
+        shareButton.textContent = '내 결과 공유하기';
+        shareButton.classList.add('show');
+        shopLink.textContent = 'JJTT 양말 보러가기';
+        shopLink.classList.add('show');
+        if (SHOP_URL) {
+          shopLink.href = SHOP_URL;
+          shopLink.removeAttribute('aria-disabled');
+          shopLink.onclick = null;
+        } else {
+          shopLink.href = '#';
+          shopLink.setAttribute('aria-disabled', 'true');
+          shopLink.onclick = event => {
+            event.preventDefault();
+            shopLink.textContent = '상품 주소 연결 예정';
+            announce('쇼핑몰 상품 주소를 연결하면 바로 이동할 수 있습니다.');
+            setTimeout(() => { shopLink.textContent = 'JJTT 양말 보러가기'; }, 1500);
+          };
+        }
+        announce(`게임 완료. ${factory.sold}켤레 판매, ${factory.donations}켤레 기부, 등급 ${grade}`);
+      }
+
+      function scoreShareText() {
+        if (!lastResult) return '';
+        return `JJTT 양말가게 타이쿤에서 ${lastResult.sold}켤레 판매, ${lastResult.donations}켤레 기부! 최종 ${lastResult.score.toLocaleString()}점 · ${lastResult.grade}등급을 달성했어요.`;
+      }
+
+      async function createReceiptShareFile() {
+        if (!lastResult || !window.navigator.canShare || typeof File === 'undefined') return null;
+        try {
+          const receiptCanvas = document.createElement('canvas');
+          receiptCanvas.width = 1080;
+          receiptCanvas.height = 1350;
+          const receiptCtx = receiptCanvas.getContext('2d');
+          receiptCtx.fillStyle = '#f5eedc';
+          receiptCtx.fillRect(0, 0, 1080, 1350);
+          receiptCtx.strokeStyle = '#294f64';
+          receiptCtx.lineWidth = 12;
+          receiptCtx.setLineDash([24, 18]);
+          receiptCtx.strokeRect(72, 72, 936, 1206);
+          receiptCtx.setLineDash([]);
+          receiptCtx.textAlign = 'center';
+          receiptCtx.fillStyle = '#315d42';
+          receiptCtx.font = '900 58px system-ui, sans-serif';
+          receiptCtx.fillText('JJTT', 540, 178);
+          receiptCtx.fillStyle = '#294f64';
+          receiptCtx.font = '900 74px system-ui, sans-serif';
+          receiptCtx.fillText('GOOD THINGS RECEIPT', 540, 276);
+          receiptCtx.fillStyle = '#c86450';
+          receiptCtx.font = '900 38px system-ui, sans-serif';
+          receiptCtx.fillText('양말가게 타이쿤!', 540, 340);
+
+          const rows = [
+            ['판매한 양말', `${lastResult.sold}켤레`],
+            ['기부한 양말', `${lastResult.donations}켤레`],
+            ['완벽 전달', `${lastResult.perfectStops}/3`],
+            ['피버 타임', `${lastResult.feverCount}회`]
+          ];
+          receiptCtx.textAlign = 'left';
+          receiptCtx.font = '800 46px system-ui, sans-serif';
+          rows.forEach((row, index) => {
+            const y = 490 + index * 112;
+            receiptCtx.fillStyle = '#415a68';
+            receiptCtx.fillText(row[0], 158, y);
+            receiptCtx.textAlign = 'right';
+            receiptCtx.fillStyle = '#294f64';
+            receiptCtx.fillText(row[1], 922, y);
+            receiptCtx.textAlign = 'left';
+            receiptCtx.strokeStyle = 'rgba(41,79,100,0.18)';
+            receiptCtx.lineWidth = 3;
+            receiptCtx.beginPath();
+            receiptCtx.moveTo(158, y + 38);
+            receiptCtx.lineTo(922, y + 38);
+            receiptCtx.stroke();
+          });
+
+          receiptCtx.textAlign = 'center';
+          receiptCtx.fillStyle = '#c86450';
+          receiptCtx.font = '900 88px system-ui, sans-serif';
+          receiptCtx.fillText(`${lastResult.score.toLocaleString()}점`, 540, 1012);
+          receiptCtx.fillStyle = '#294f64';
+          receiptCtx.font = '900 62px system-ui, sans-serif';
+          receiptCtx.fillText(`${lastResult.grade} GRADE`, 540, 1090);
+          receiptCtx.fillStyle = '#315d42';
+          receiptCtx.font = '900 36px system-ui, sans-serif';
+          receiptCtx.fillText('한 켤레 팔리면, 한 켤레 기부!', 540, 1194);
+          receiptCtx.fillStyle = '#c86450';
+          receiptCtx.font = '800 28px system-ui, sans-serif';
+          receiptCtx.fillText('JACKTWEET.COM', 540, 1244);
+
+          const blob = await new Promise(resolve => receiptCanvas.toBlob(resolve, 'image/png'));
+          if (!blob) return null;
+          const file = new File([blob], 'jjtt-good-things-receipt.png', { type: 'image/png' });
+          return window.navigator.canShare({ files: [file] }) ? file : null;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      async function copyShareText(value) {
+        if (window.navigator.clipboard && window.isSecureContext) {
+          await window.navigator.clipboard.writeText(value);
+          return;
+        }
+        const textarea = document.createElement('textarea');
+        textarea.value = value;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        textarea.remove();
+      }
+
+      async function shareScore() {
+        const shareText = scoreShareText();
+        if (!shareText) return;
+        const shareData = { title: 'JJTT 양말가게 타이쿤', text: shareText };
+        if (window.location && /^https?:$/.test(window.location.protocol)) shareData.url = window.location.href;
+
+        try {
+          const receiptFile = window.navigator.canShare ? await createReceiptShareFile() : null;
+          if (receiptFile) shareData.files = [receiptFile];
+          if (window.navigator.share) {
+            await window.navigator.share(shareData);
+            shareButton.textContent = '공유 완료!';
+          } else {
+            await copyShareText([shareText, shareData.url].filter(Boolean).join(' '));
+            shareButton.textContent = '점수가 복사됐어요!';
+          }
+          setTimeout(() => { shareButton.textContent = '내 결과 공유하기'; }, 1600);
+        } catch (error) {
+          if (error && error.name === 'AbortError') return;
+          try {
+            await copyShareText(shareText);
+            shareButton.textContent = '점수가 복사됐어요!';
+            setTimeout(() => { shareButton.textContent = '내 결과 공유하기'; }, 1600);
+          } catch (copyError) {
+            shareButton.textContent = '공유를 다시 시도해주세요';
+          }
+        }
+      }
+
+      function handleFactoryTap(x, y) {
+        if (y >= stockRect.y && y <= stockRect.y + stockRect.h && x >= stockRect.x && x <= stockRect.x + stockRect.w) {
+          const firstSlotX = 33;
+          const slotWidth = 52;
+          const stockIndex = y >= 746 && y <= 818 && x >= firstSlotX
+            ? Math.floor((x - firstSlotX) / slotWidth)
+            : -1;
+          serveOne(stockIndex);
+          return;
+        }
+
+        for (let row = 0; row < 3; row += 1) {
+          const cellY = stationRows[row];
+          if (y < cellY || y > cellY + stationH) continue;
+
+          if (x >= stationColumns[0] && x <= stationColumns[0] + stationW) {
+            const s = factory.sew[row];
+            if (s.state === 'idle') startSew(row);
+            else if (s.state === 'jammed') clearJam(row);
+            else if (s.state === 'sewDone') moveSewToSteam(row);
+            return;
+          }
+
+          if (x >= stationColumns[1] && x <= stationColumns[1] + stationW) {
+            if (factory.steam[row].state === 'steamDone') moveSteamToPack(row);
+            return;
+          }
+
+          if (x >= stationColumns[2] && x <= stationColumns[2] + stationW) {
+            if (factory.pack[row].state === 'packDone') showToast('진열대를 먼저 비워주세요!', C.coral);
+            return;
+          }
+        }
+      }
+
+      function pointerPosition(event) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+          x: (event.clientX - rect.left) * (W / rect.width),
+          y: (event.clientY - rect.top) * (H / rect.height)
+        };
+      }
+
+      canvas.addEventListener('pointerdown', event => {
+        event.preventDefault();
+        const p = pointerPosition(event);
+        if (phase === 'factory') handleFactoryTap(p.x, p.y);
+        else if (phase === 'delivery') deliveryTap();
+      });
+
+      window.addEventListener('keydown', event => {
+        if (event.code === 'Escape' && ['factory', 'transition', 'delivery'].includes(phase)) {
+          event.preventDefault();
+          if (isPaused) resumeGame();
+          else pauseGame();
+          return;
+        }
+        if (event.code === 'Space' && phase === 'delivery') {
+          event.preventDefault();
+          deliveryTap();
+        }
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) pauseGame();
+        lastTime = performance.now();
+      });
+
+      function drawFactoryBackground() {
+        if (assetReady('factoryBg')) {
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(pixelAssets.factoryBg, 0, 0, W, H);
+          ctx.fillStyle = 'rgba(245,238,220,0.08)';
+          ctx.fillRect(0, 110, W, 590);
+          return;
+        }
+        ctx.fillStyle = C.cream;
+        ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = C.floor;
+        ctx.fillRect(0, 312, W, 388);
+
+        ctx.globalAlpha = 0.12;
+        ctx.strokeStyle = C.navy;
+        ctx.lineWidth = 1;
+        for (let x = 0; x <= W; x += 18) {
+          ctx.beginPath();
+          ctx.moveTo(x, 312);
+          ctx.lineTo(x, 700);
+          ctx.stroke();
+        }
+        for (let y = 312; y <= 700; y += 18) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(W, y);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      function drawHUD() {
+        ctx.fillStyle = C.navy;
+        ctx.fillRect(0, 0, W, 82);
+        text('JJTT 타이쿤', 160, 29, 15, C.cream, 'center', 900);
+        text('1/2 양말 제작', 160, 58, 13, C.paleSky, 'center', 900);
+
+        text('남은 시간', W / 2, 23, 12, C.paleSky, 'center', 900);
+        text(Math.ceil(factory.time).toString().padStart(2, '0'), W / 2, 54, 28, C.yellow, 'center', 900);
+
+        text('판매', W - 22, 23, 13, C.cream, 'right', 900);
+        text(`${factory.sold}켤레`, W - 22, 53, 22, C.yellow, 'right', 900);
+
+        ctx.fillStyle = C.sky;
+        ctx.fillRect(0, 82, W, 28);
+        text(`SCORE ${factory.score.toLocaleString()}`, 18, 96, 13, C.dark, 'left', 900);
+        text(`콤보 ×${factory.combo}`, W - 18, 96, 14, C.dark, 'right', 900);
+      }
+
+      function drawFactoryWorker() {
+        const row = factory.workerActionTime > 0 ? factory.workerActionRow : 0;
+        const action = ['idle', 'sew', 'fix', 'carry'][row] || 'idle';
+        const frame = Math.floor(factory.elapsed * 4) % 2 ? 'b' : 'a';
+        const bounce = action === 'idle' && frame === 'b' ? 1 : 0;
+        drawSprite(`cj-factory-${action}-${frame}`, 91, 289 + bounce, 112, 158);
+      }
+
+      function drawCustomerCharacter(customer, mood = 'waiting') {
+        if (!customer) return;
+        const impatient = customer.wrongTime > 0 || customer.patience / customer.maxPatience < 0.35;
+        const state = mood === 'happy' ? 'happy' : impatient ? 'impatient' : 'wait';
+        const bounce = Math.floor(factory.elapsed * 3) % 2;
+        drawSprite(`customer-${customer.look % 4}-${state}`, 236, 289 + bounce, 112, 158);
+      }
+
+      function drawCustomerArea() {
+        roundRect(12, 118, 516, 184, 18, 'rgba(245,238,220,0.90)', C.navy, 3);
+        ctx.fillStyle = 'rgba(143,190,209,0.28)';
+        ctx.fillRect(23, 278, 296, 12);
+        text('CJ', 91, 137, 13, C.green, 'center', 900);
+        text('오늘의 손님', 236, 137, 13, C.navy, 'center', 900);
+
+        drawFactoryWorker();
+
+        if (!factory.customer) {
+          if (factory.customerExit) {
+            drawCustomerCharacter(factory.customerExit, 'happy');
+            roundRect(338, 137, 172, 118, 16, C.white, C.navy, 3);
+            text('고마워요!', 424, 174, 20, C.green, 'center', 900);
+            text('좋은 일도 함께', 424, 204, 13, C.coral, 'center', 900);
+            text('♥', 424, 232, 22, C.coral, 'center', 900);
+            return;
+          }
+          roundRect(338, 137, 172, 118, 16, C.white, C.navy, 3);
+          text('다음 손님이', 424, 177, 16, C.navy, 'center', 800);
+          text('오고 있어요…', 424, 207, 17, C.green, 'center', 900);
+          return;
+        }
+
+        drawCustomerCharacter(factory.customer);
+        roundRect(338, 130, 172, 146, 17, C.white, C.navy, 3);
+        text(factory.customer.design.name, 424, 148, 13, C.green, 'center', 900);
+        drawSockAsset(factory.customer.design, 355, 158, 66, 74);
+        text(`×${factory.customer.remaining}`, 468, 194, 38, C.coral, 'center', 900);
+        text(`주문 ${factory.customer.qty}켤레`, 424, 236, 15, C.navy, 'center', 900);
+
+        const patience = factory.customer.patience / factory.customer.maxPatience;
+        drawProgress(356, 256, 136, patience, patience > 0.45 ? C.green : patience > 0.2 ? C.yellow : C.coral);
+      }
+
+      function drawSewMachine(x, y, s, assignedDesign) {
+        if (drawSpriteInBox('machine-sew', x + 24, y + 20, 102, 52)) {
+          drawSockAsset(s.product || assignedDesign, x + 111, y + 33, 31, 40);
+          if (s.state === 'jammed') {
+            drawSpriteInBox('effect-thread-jam', x + 7, y + 25, 54, 47);
+          }
+          return;
+        }
+        ctx.fillStyle = C.navy;
+        ctx.fillRect(x + 38, y + 24, 73, 14);
+        ctx.fillRect(x + 38, y + 38, 18, 35);
+        ctx.fillRect(x + 53, y + 64, 69, 9);
+        ctx.fillRect(x + 102, y + 36, 9, 31);
+        ctx.fillStyle = C.yellow;
+        ctx.beginPath();
+        ctx.arc(x + 72, y + 20, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = C.dark;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x + 111, y + 45);
+        ctx.lineTo(x + 111, y + 67);
+        ctx.stroke();
+        ctx.save();
+        if (!s.product) ctx.globalAlpha = 0.42;
+        drawSock(x + 88, y + 66, 0.48, s.product || assignedDesign);
+        ctx.restore();
+      }
+
+      function drawSteamMachine(x, y, s) {
+        if (drawSpriteInBox('machine-steam', x + 28, y + 18, 98, 57)) {
+          if (s.product) drawSockAsset(s.product, x + 83, y + 37, 34, 40);
+          if (s.state === 'steaming') {
+            drawSpriteInBox('effect-steam', x + 83, y + 7, 55, 45, 0.88);
+          }
+          return;
+        }
+        ctx.fillStyle = C.brown;
+        ctx.fillRect(x + 26, y + 65, 104, 8);
+        ctx.fillRect(x + 34, y + 73, 8, 12);
+        ctx.fillRect(x + 114, y + 73, 8, 12);
+        ctx.fillStyle = C.sky;
+        ctx.beginPath();
+        ctx.moveTo(x + 60, y + 60);
+        ctx.lineTo(x + 114, y + 60);
+        ctx.quadraticCurveTo(x + 105, y + 33, x + 80, y + 37);
+        ctx.lineTo(x + 55, y + 48);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = C.dark;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        if (s.product) drawSock(x + 76, y + 68, 0.42, s.product);
+        if (s.state === 'steaming') {
+          ctx.strokeStyle = C.white;
+          ctx.lineWidth = 3;
+          for (let i = 0; i < 3; i += 1) {
+            ctx.beginPath();
+            ctx.arc(x + 72 + i * 16, y + 25, 8, Math.PI * 0.2, Math.PI * 1.3);
+            ctx.stroke();
+          }
+        }
+      }
+
+      function drawPackMachine(x, y, s) {
+        if (drawSpriteInBox('machine-pack', x + 20, y + 22, 114, 53)) {
+          if (s.product) drawSockAsset(s.product, x + 59, y + 32, 40, 45);
+          return;
+        }
+        ctx.fillStyle = C.brown;
+        ctx.fillRect(x + 22, y + 67, 112, 9);
+        ctx.fillRect(x + 30, y + 76, 9, 10);
+        ctx.fillRect(x + 117, y + 76, 9, 10);
+        ctx.fillStyle = C.yellow;
+        ctx.fillRect(x + 52, y + 31, 54, 39);
+        ctx.strokeStyle = C.dark;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x + 52, y + 31, 54, 39);
+        ctx.beginPath();
+        ctx.moveTo(x + 52, y + 31);
+        ctx.lineTo(x + 79, y + 19);
+        ctx.lineTo(x + 106, y + 31);
+        ctx.stroke();
+        if (s.product) drawSock(x + 79, y + 58, 0.52, s.product);
+      }
+
+      function stationStatus(type, s) {
+        if (type === 'sew') {
+          if (s.state === 'idle') return ['탭해서 실 끼우기', 0, C.navy];
+          if (s.state === 'sewing') return ['재봉 중', s.progress / SEW_TIME, C.green];
+          if (s.state === 'jammed') return ['실 걸림 · 탭!', s.progress / SEW_TIME, C.coral];
+          return ['완료 · 탭해서 이동', 1, C.green];
+        }
+        if (type === 'steam') {
+          if (s.state === 'idle') return ['비어 있음', 0, C.navy];
+          if (s.state === 'steaming') return ['스팀 중', s.progress / STEAM_TIME, C.green];
+          return ['완료 · 탭해서 이동', 1, C.green];
+        }
+        if (s.state === 'idle') return ['비어 있음', 0, C.navy];
+        if (s.state === 'packing') return ['포장 중', s.progress / PACK_TIME, C.green];
+        return ['진열대가 가득 찼어요', 1, C.coral];
+      }
+
+      function drawStation(type, row, s) {
+        const column = type === 'sew' ? 0 : type === 'steam' ? 1 : 2;
+        const x = stationColumns[column];
+        const y = stationRows[row];
+        const done = s.state === 'sewDone' || s.state === 'steamDone';
+        const jammed = s.state === 'jammed';
+        const fill = jammed ? C.paleCoral : done ? C.paleGreen : s.state === 'idle' ? C.cream : type === 'steam' ? C.warm : C.paleSky;
+        const border = jammed ? C.coral : done ? C.green : C.navy;
+        const lift = done || jammed ? Math.sin(performance.now() / 130) * 1.5 : 0;
+
+        roundRect(x, y + lift, stationW, stationH, 13, fill, border, 3);
+        const [label, progress, progressColor] = stationStatus(type, s);
+        const topLabel = type === 'sew' ? designs[row].name : label;
+        text(topLabel, x + stationW / 2, y + 12 + lift, 12, border, 'center', 900);
+
+        if (type === 'sew') drawSewMachine(x, y + lift, s, designs[row]);
+        else if (type === 'steam') drawSteamMachine(x, y + lift, s);
+        else drawPackMachine(x, y + lift, s);
+
+        if (type === 'sew') text(label, x + stationW / 2, y + 77 + lift, 12, border, 'center', 900);
+        drawProgress(x + 18, y + 84 + lift, stationW - 36, progress, progressColor);
+      }
+
+      function drawFactoryFloor() {
+        text('재봉틀', stationColumns[0] + stationW / 2, 337, 14, C.navy, 'center', 900);
+        text('스팀기', stationColumns[1] + stationW / 2, 337, 14, C.navy, 'center', 900);
+        text('포장대', stationColumns[2] + stationW / 2, 337, 14, C.navy, 'center', 900);
+
+        for (let row = 0; row < 3; row += 1) {
+          drawStation('sew', row, factory.sew[row]);
+          drawStation('steam', row, factory.steam[row]);
+          drawStation('pack', row, factory.pack[row]);
+          text('→', 183, stationRows[row] + 49, 18, C.green, 'center', 900);
+          text('→', 356, stationRows[row] + 49, 18, C.green, 'center', 900);
+        }
+      }
+
+      function drawStockTray() {
+        roundRect(stockRect.x, stockRect.y, stockRect.w, stockRect.h, 16, C.yellow, C.navy, 3);
+        text('완성 양말 · 주문과 같은 양말을 탭', W / 2, 729, 14, C.navy, 'center', 900);
+        ctx.fillStyle = 'rgba(245,238,220,0.75)';
+        ctx.fillRect(35, 746, 470, 72);
+
+        for (let i = 0; i < STOCK_MAX; i += 1) {
+          const x = 59 + i * 52;
+          if (i < factory.stock) {
+            const stockDesign = factory.stockDesigns[i] || designs[i % designs.length];
+            const isMatch = factory.customer && stockDesign.name === factory.customer.design.name;
+            if (isMatch) roundRect(x - 23, 754, 46, 56, 7, 'rgba(217,231,206,0.95)', C.green, 2.5);
+            if (!drawSockAsset(stockDesign, x - 19, 756, 38, 52)) {
+              drawSock(x, 788, 0.62, stockDesign);
+            }
+          } else {
+            roundRect(x - 18, 760, 36, 43, 5, 'rgba(41,79,100,0.08)', 'rgba(41,79,100,0.16)', 1);
+          }
+        }
+        if (factory.wrongOrderTime > 0) {
+          const pulse = 0.86 + Math.sin(factory.elapsed * 18) * 0.12;
+          drawSprite('effect-thread-jam', 270, 798, 88 * pulse, 78 * pulse, { originX: 0.5, originY: 1 });
+        }
+        text(`${factory.stock} / ${STOCK_MAX}`, 494, 815, 14, C.navy, 'right', 900);
+      }
+
+      function drawFactoryFooter() {
+        roundRect(20, 856, 500, 70, 14, C.navy);
+        text('주문 확인 → 재봉 → 스팀 → 포장', W / 2, 878, 15, C.cream, 'center', 900);
+        text(`판매 ${factory.sold}켤레 · 손님 ${factory.served}명 · 놓침 ${factory.missed}명`, W / 2, 904, 15, C.yellow, 'center', 900);
+      }
+
+      function drawToast() {
+        if (toast.time <= 0 || !toast.text) return;
+        const width = Math.min(460, Math.max(210, ctx.measureText(toast.text).width + 54));
+        roundRect((W - width) / 2, 316, width, 34, 17, toast.color);
+        text(toast.text, W / 2, 333, 14, C.white, 'center', 900);
+      }
+
+      function drawFactory() {
+        drawFactoryBackground();
+        drawHUD();
+        drawCustomerArea();
+        drawFactoryFloor();
+        drawStockTray();
+        drawFactoryFooter();
+        drawToast();
+      }
+
+      function transitionSceneFor(left) {
+        if (left > TRANSITION_DURATION * (2 / 3)) return 0;
+        if (left > TRANSITION_DURATION * (1 / 3)) return 1;
+        return 2;
+      }
+
+      function drawTransitionCharacter(frame, x, y, size) {
+        if (assetReady('transitionCj')) {
+          const image = pixelAssets.transitionCj;
+          const cellWidth = image.naturalWidth / 3;
+          ctx.save();
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(image, frame * cellWidth, 0, cellWidth, image.naturalHeight, x, y, size, size);
+          ctx.restore();
+          return;
+        }
+        const fallbackKey = frame === 2 ? 'cj-delivery-ride-a' : frame === 1 ? 'cj-factory-carry-b' : 'cj-factory-carry-a';
+        drawSprite(fallbackKey, x + size / 2, y + size * 0.92, size * 0.70, size * 0.84, { flipX: frame === 2 });
+      }
+
+      function drawDonationBatchCard(x, designIndex, label, batch) {
+        roundRect(x, 586, 132, 104, 13, C.white, C.navy, 2.5);
+        drawSprite(`npc-${['youth', 'fire', 'senior'][designIndex]}-wait`, x + 33, 653, 56, 67);
+        drawSockAsset(designs[designIndex], x + 66, 608, 34, 48);
+        text(label, x + 66, 669, 11, C.navy, 'center', 900);
+        roundRect(x + 32, 674, 68, 23, 11, C.navy);
+        text(`${batch}켤레`, x + 66, 686, 11, C.yellow, 'center', 900);
+      }
+
+      function drawTransition() {
+        drawFactory();
+        ctx.fillStyle = 'rgba(23,52,74,0.84)';
+        ctx.fillRect(0, 0, W, H);
+        roundRect(28, 104, 484, 746, 25, C.cream, C.navy, 4);
+
+        const scene = transitionSceneFor(transitionLeft);
+        const countdown = 3 - scene;
+        text(scene === 0 ? 'STEP 1 CLEAR' : scene === 1 ? 'GOOD THINGS MISSION' : 'STEP 2 READY', W / 2, 140, 13, C.coral, 'center', 900);
+        text(scene === 0 ? '장사 끝!' : scene === 1 ? '기부할 양말 준비!' : '기부 배달 시작!', W / 2, 181, 29, C.navy, 'center', 900);
+        roundRect(47, 199, 446, 28, 14, scene === 2 ? C.yellow : C.paleGreen, C.navy, 2);
+        text(scene === 0 ? '게임은 아직 끝나지 않았어요!' : scene === 1 ? '판매한 만큼 세 기부처로 나눠요' : 'CJ와 함께 다음 미션으로 출발!', W / 2, 213, 12, C.dark, 'center', 900);
+
+        if (scene === 0) {
+          drawTransitionCharacter(0, 100, 230, 340);
+          roundRect(77, 588, 386, 85, 15, C.white, C.navy, 2.5);
+          text(`${factory.sold}켤레 판매 완료`, W / 2, 614, 18, C.green, 'center', 900);
+          text(`한 켤레당 한 켤레 · ${factory.donations}켤레 기부`, W / 2, 647, 14, C.navy, 'center', 900);
+        } else if (scene === 1) {
+          drawTransitionCharacter(1, 112, 227, 316);
+          const batches = splitDonationBatches(factory.donations);
+          drawDonationBatchCard(54, 0, '아동 지원', batches[0]);
+          drawDonationBatchCard(204, 1, '소방·구급', batches[1]);
+          drawDonationBatchCard(354, 2, '복지관', batches[2]);
+        } else {
+          drawTransitionCharacter(2, 94, 224, 352);
+          roundRect(67, 586, 406, 110, 15, C.paleSky, C.navy, 2.5);
+          text('탭해서 점프 · 깃털 5개면 피버!', W / 2, 614, 15, C.navy, 'center', 900);
+          text('기부처에서는 잠깐 멈춰', W / 2, 645, 14, C.dark, 'center', 800);
+          text('게이지 중앙에 맞춰 전달하세요', W / 2, 671, 14, C.green, 'center', 900);
+        }
+
+        const deliveryMultiplier = 1 + Math.min(5, factory.bestCombo) * 0.1;
+        text(`1/2 제작 완료  →  2/2 기부 배달`, W / 2, 742, 15, C.green, 'center', 900);
+        text(`공장 콤보 ×${factory.bestCombo} · 배달 점수 ×${deliveryMultiplier.toFixed(1)}`, W / 2, 771, 12, C.navy, 'center', 900);
+        roundRect(229, 790, 82, 43, 21, C.coral, C.navy, 2.5);
+        text(countdown.toString(), W / 2, 812, 25, C.white, 'center', 900);
+      }
+
+      function drawDeliveryBackground() {
+        if (assetReady('villageRoute')) {
+          ctx.fillStyle = C.sky;
+          ctx.fillRect(0, 0, W, H);
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(pixelAssets.villageRoute, -delivery.worldOffset, 0, DELIVERY_WORLD_WIDTH, H);
+          if (delivery.feverTime > 0) {
+            const shift = (delivery.elapsed * 250) % 340;
+            drawSprite('effect-speed', W - shift, 360, 190, 68, { alpha: 0.56, originX: 0.5, originY: 0.5 });
+            drawSprite('effect-speed', W - ((shift + 190) % 440), 548, 170, 62, { alpha: 0.40, originX: 0.5, originY: 0.5 });
+          }
+          return;
+        }
+        ctx.fillStyle = C.sky;
+        ctx.fillRect(0, 0, W, H);
+
+        ctx.fillStyle = C.white;
+        for (let i = 0; i < 5; i += 1) {
+          const x = ((i * 155 - delivery.elapsed * 28) % 760) - 80;
+          ctx.beginPath();
+          ctx.arc(x, 150 + (i % 2) * 55, 32, 0, Math.PI * 2);
+          ctx.arc(x + 35, 145 + (i % 2) * 55, 43, 0, Math.PI * 2);
+          ctx.arc(x + 72, 153 + (i % 2) * 55, 29, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.fillStyle = '#6ca17b';
+        ctx.beginPath();
+        ctx.moveTo(0, 610);
+        for (let x = 0; x <= W; x += 90) {
+          ctx.lineTo(x, 515 + ((x / 90) % 2) * 45);
+        }
+        ctx.lineTo(W, 730);
+        ctx.lineTo(0, 730);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = C.road;
+        ctx.fillRect(0, 765, W, 195);
+        ctx.fillStyle = C.green;
+        ctx.fillRect(0, 748, W, 17);
+        ctx.fillStyle = C.yellow;
+        for (let x = -40; x < W + 80; x += 95) {
+          const stripeSpeed = delivery.feverTime > 0 ? 285 : 190;
+          const px = x - (delivery.elapsed * stripeSpeed) % 95;
+          ctx.fillRect(px, 852, 54, 7);
+        }
+
+        if (delivery.feverTime > 0) {
+          ctx.save();
+          ctx.globalAlpha = 0.32;
+          ctx.strokeStyle = C.yellow;
+          ctx.lineWidth = 5;
+          for (let i = 0; i < 8; i += 1) {
+            const y = 230 + i * 62;
+            const offset = (delivery.elapsed * 520 + i * 47) % 270;
+            ctx.beginPath();
+            ctx.moveTo(W - offset, y);
+            ctx.lineTo(W - offset + 95, y - 14);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+      }
+
+      function drawDeliveryHUD() {
+        roundRect(16, 16, 508, 74, 15, C.navy);
+        text('JJTT 타이쿤', 160, 29, 15, C.cream, 'center', 900);
+        const feverMultiplier = delivery.feverTime > 0 ? 2 : 1;
+        text(`2/2 기부 배달 · ×${(delivery.startMultiplier * feverMultiplier).toFixed(1)}`, 160, 59, 12, delivery.feverTime > 0 ? C.yellow : C.paleSky, 'center', 900);
+        text('남은 시간', W / 2, 31, 12, C.paleSky, 'center', 900);
+        text(Math.ceil(delivery.time).toString().padStart(2, '0'), W / 2, 61, 26, C.yellow, 'center', 900);
+        text('기부', 505, 30, 13, C.cream, 'right', 900);
+        text(`${factory.donations}켤레`, 505, 60, 21, C.yellow, 'right', 900);
+
+        const progress = 1 - delivery.time / DELIVERY_DURATION;
+        roundRect(16, 101, 508, 14, 7, 'rgba(41,79,100,0.25)');
+        roundRect(16, 101, 508 * progress, 14, 7, C.coral);
+
+        text('깃털', 19, 137, 13, C.navy, 'left', 900);
+        for (let i = 0; i < 5; i += 1) {
+          ctx.beginPath();
+          ctx.arc(87 + i * 22, 133, 7, 0, Math.PI * 2);
+          ctx.fillStyle = i < delivery.featherCharge ? C.yellow : 'rgba(41,79,100,0.18)';
+          ctx.fill();
+          ctx.strokeStyle = C.navy;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+        if (delivery.feverTime > 0) {
+          roundRect(316, 121, 208, 25, 12, C.yellow, C.navy, 2);
+          text(`FEVER ${delivery.feverTime.toFixed(1)}s`, 420, 134, 14, C.navy, 'center', 900);
+        } else {
+          text(`수집 ${delivery.feathersCollected}개`, 521, 136, 13, C.navy, 'right', 900);
+        }
+      }
+
+      function drawSkater() {
+        const x = 112;
+        const y = delivery.playerY;
+        const state = delivery.handoffModal || delivery.handoffTime > 0 ? 'handoff' : delivery.slowTime > 0 ? 'wobble' : delivery.onGround ? 'ride' : 'jump';
+        const frame = Math.floor(delivery.elapsed * 6) % 2 ? 'b' : 'a';
+        const spriteKey = `cj-delivery-${state}-${frame}`;
+        if (assetReady(spriteKey)) {
+          const alpha = delivery.slowTime > 0 ? 0.62 + Math.sin(performance.now() / 70) * 0.2 : 1;
+          if (delivery.feverTime > 0) {
+            drawSprite('effect-speed', 115, y + 38, 180, 72, { alpha: 0.62, originX: 0.5, originY: 0.5 });
+          }
+          drawSprite(spriteKey, x, y + 100, 190, 188, { alpha, flipX: true });
+          if (delivery.feverTime > 0) {
+            const birdY = y - 55 + Math.sin(delivery.elapsed * 10) * 7;
+            drawSprite('booby-bird', 47, birdY + 20, 70, 62);
+          }
+          return;
+        }
+        ctx.save();
+        if (delivery.slowTime > 0) ctx.globalAlpha = 0.62 + Math.sin(performance.now() / 70) * 0.2;
+
+        ctx.fillStyle = C.dark;
+        ctx.fillRect(x - 34, y + 58, 78, 8);
+        ctx.beginPath();
+        ctx.arc(x - 22, y + 70, 8, 0, Math.PI * 2);
+        ctx.arc(x + 32, y + 70, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = C.yellow;
+        ctx.fillRect(x - 18, y + 6, 40, 47);
+        ctx.fillStyle = C.coral;
+        ctx.fillRect(x - 27, y - 7, 54, 16);
+        ctx.fillStyle = C.cream;
+        ctx.beginPath();
+        ctx.arc(x, y - 6, 22, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = C.dark;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.fillStyle = C.navy;
+        ctx.fillRect(x - 26, y - 28, 53, 12);
+        ctx.fillRect(x + 18, y - 19, 17, 6);
+        ctx.fillStyle = C.dark;
+        ctx.fillRect(x + 7, y - 9, 4, 4);
+
+        ctx.fillStyle = C.green;
+        ctx.fillRect(x - 39, y + 7, 23, 33);
+        text('🧦', x - 28, y + 24, 14, C.white, 'center', 800);
+
+        if (delivery.feverTime > 0) {
+          const birdY = y - 45 + Math.sin(delivery.elapsed * 10) * 7;
+          ctx.fillStyle = C.yellow;
+          ctx.beginPath();
+          ctx.ellipse(x - 55, birdY, 16, 11, -0.2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = C.navy;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(x - 58, birdY);
+          ctx.quadraticCurveTo(x - 75, birdY - 20, x - 83, birdY - 4);
+          ctx.stroke();
+          ctx.fillStyle = C.coral;
+          ctx.beginPath();
+          ctx.moveTo(x - 39, birdY - 2);
+          ctx.lineTo(x - 29, birdY + 2);
+          ctx.lineTo(x - 40, birdY + 5);
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      function drawObstacle(o) {
+        if (delivery.elapsed < o.spawnAt || o.x < -80 || o.x > W + 80) return;
+        const assetKey = o.type === 'widePuddle' ? 'obstacle-puddle' : o.type === 'doubleCone' ? 'obstacle-cones' : 'obstacle-ball';
+        if (assetReady(assetKey)) {
+          const alpha = o.hit ? 0.35 : 1;
+          if (o.type === 'widePuddle') drawSprite(assetKey, o.x, 796, 132, 54, { alpha });
+          else if (o.type === 'doubleCone') drawSprite(assetKey, o.x, 801, 104, 87, { alpha });
+          else drawSprite(assetKey, o.x, 798, 72, 72, { alpha });
+          return;
+        }
+        ctx.globalAlpha = o.hit ? 0.35 : 1;
+        if (o.type === 'widePuddle') {
+          ctx.fillStyle = '#4f94b3';
+          ctx.beginPath();
+          ctx.ellipse(o.x, 775, 59, 12, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = C.white;
+          ctx.fillRect(o.x - 30, 769, 24, 3);
+          ctx.fillRect(o.x + 13, 774, 20, 3);
+        } else if (o.type === 'doubleCone') {
+          [-22, 22].forEach((offset, index) => {
+            ctx.fillStyle = index === 0 ? C.coral : C.yellow;
+            ctx.beginPath();
+            ctx.moveTo(o.x + offset, 727 + index * 5);
+            ctx.lineTo(o.x + offset - 19, 771);
+            ctx.lineTo(o.x + offset + 19, 771);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = C.cream;
+            ctx.fillRect(o.x + offset - 12, 750 + index * 3, 24, 7);
+          });
+        } else {
+          ctx.save();
+          ctx.translate(o.x, 746);
+          ctx.rotate(delivery.elapsed * 7);
+          ctx.fillStyle = C.coral;
+          ctx.beginPath();
+          ctx.arc(0, 0, 25, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = C.cream;
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.arc(0, 0, 15, 0.3, 2.6);
+          ctx.stroke();
+          ctx.restore();
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      function drawFeather(feather) {
+        if (delivery.elapsed < feather.spawnAt || feather.collected || feather.x < -45 || feather.x > W + 55) return;
+        const bob = Math.sin(delivery.elapsed * 7 + feather.spawnAt) * 6;
+        const featherKey = Math.floor(delivery.elapsed * 7) % 2 ? 'feather-b' : 'feather-a';
+        if (assetReady(featherKey)) {
+          drawSprite(featherKey, feather.x, feather.y + bob, 54, 68, { originX: 0.5, originY: 0.5 });
+          return;
+        }
+        ctx.save();
+        ctx.translate(feather.x, feather.y + bob);
+        ctx.rotate(-0.38 + Math.sin(delivery.elapsed * 4) * 0.14);
+        ctx.fillStyle = C.yellow;
+        ctx.strokeStyle = C.navy;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-3, 18);
+        ctx.bezierCurveTo(-22, 5, -18, -20, 9, -25);
+        ctx.bezierCurveTo(20, -8, 15, 8, -3, 18);
+        ctx.fill();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-7, 22);
+        ctx.lineTo(9, -21);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawDeliveryStop(stop) {
+        if (stop.x < -130 || stop.x > W + 130) return;
+        const approaching = delivery.elapsed >= stop.spawnAt && !stop.done && !stop.modalStarted && stop.x > 285 && stop.x <= 500;
+        const inZone = delivery.elapsed >= stop.spawnAt && !stop.done && stop.x >= 105 && stop.x <= 285;
+        if (approaching) {
+          ctx.fillStyle = 'rgba(217,231,206,0.24)';
+          ctx.fillRect(285, 228, 215, 580);
+          roundRect(100, 158, 340, 54, 15, C.paleGreen, C.green, 3);
+          text('기부처 접근 중 · 안전 구역', W / 2, 185, 14, C.green, 'center', 900);
+        }
+        if (inZone) {
+          ctx.fillStyle = 'rgba(241,202,98,0.24)';
+          ctx.fillRect(105, 228, 180, 580);
+          roundRect(90, 158, 360, 54, 15, C.cream, C.navy, 3);
+          text('목적지 도착 · 전달 준비!', W / 2, 185, 14, C.green, 'center', 900);
+        }
+
+        const x = stop.x;
+        roundRect(x - 78, 510, 156, 42, 12, C.white, C.navy, 2);
+        text(stop.short, x, 531, 14, C.navy, 'center', 900);
+
+        const npcState = stop.done ? 'receive' : 'wait';
+        drawSprite(`npc-${stop.npc}-${npcState}`, x, 710, 116, 146);
+
+        if (!stop.done) {
+          roundRect(x + 45, 555, 68, 98, 16, C.white, C.navy, 2);
+          drawSockAsset(designs[stop.designIndex], x + 59, 563, 40, 53);
+          roundRect(x + 52, 620, 54, 25, 12, C.navy);
+          text(`${stop.batch}켤레`, x + 79, 633, 12, C.yellow, 'center', 900);
+        } else {
+          roundRect(x + 42, 586, 84, 32, 15, C.paleGreen, C.green, 2);
+          text('전달 완료!', x + 84, 602, 12, C.green, 'center', 900);
+        }
+      }
+
+      function drawDeliveryHearts() {
+        delivery.hearts.forEach(h => {
+          const alpha = clamp(h.life, 0, 1);
+          if (!drawSprite('effect-heart', h.x, h.y, 36, 36, { alpha, originX: 0.5, originY: 0.5 })) {
+            ctx.globalAlpha = alpha;
+            text('♥', h.x, h.y, 24, C.coral, 'center', 900);
+          }
+        });
+        ctx.globalAlpha = 1;
+      }
+
+      function drawFeverFlash() {
+        if (delivery.feverTime <= 0 || delivery.handoffModal) return;
+        const pulse = Math.pow((Math.sin(delivery.elapsed * Math.PI * 5) + 1) / 2, 8);
+        const flashAlpha = 0.035 + pulse * 0.115;
+        ctx.fillStyle = `rgba(255,244,174,${flashAlpha})`;
+        ctx.fillRect(0, 0, W, H);
+
+        const edgeAlpha = 0.14 + pulse * 0.30;
+        ctx.fillStyle = `rgba(241,202,98,${edgeAlpha})`;
+        ctx.fillRect(0, 0, W, 8);
+        ctx.fillRect(0, H - 8, W, 8);
+        ctx.fillStyle = `rgba(143,190,209,${edgeAlpha})`;
+        ctx.fillRect(0, 0, 8, H);
+        ctx.fillRect(W - 8, 0, 8, H);
+      }
+
+      function drawHandoffModal() {
+        const modal = delivery.handoffModal;
+        if (!modal) return;
+        const stop = modal.stop;
+        ctx.fillStyle = 'rgba(23,52,74,0.70)';
+        ctx.fillRect(0, 0, W, H);
+        roundRect(40, 205, 460, 526, 24, C.cream, C.navy, 4);
+
+        text('GOOD THINGS HANDOFF', W / 2, 234, 14, C.coral, 'center', 900);
+        text(stop.label, W / 2, 266, 20, C.navy, 'center', 900);
+        roundRect(84, 286, 372, 174, 18, C.paleSky, C.navy, 3);
+        const npcState = modal.result ? 'receive' : 'wait';
+        drawSprite('cj-delivery-handoff-a', 145, 442, 166, 160, { flipX: true });
+        drawSprite(`npc-${stop.npc}-${npcState}`, 395, 442, 116, 145);
+        drawSockAsset(designs[stop.designIndex], 245, 326, 50, 74);
+        roundRect(236, 405, 68, 28, 14, C.navy);
+        text(`${stop.batch}켤레`, 270, 419, 13, C.yellow, 'center', 900);
+
+        const barX = 82;
+        const barY = 505;
+        const barW = 376;
+        roundRect(barX, barY, barW, 38, 19, C.paleCoral, C.navy, 3);
+        ctx.fillStyle = C.yellow;
+        ctx.fillRect(barX + 62, barY + 3, barW - 124, 32);
+        ctx.fillStyle = C.green;
+        ctx.fillRect(barX + 157, barY + 3, 62, 32);
+        const markerX = barX + modal.marker * barW;
+        ctx.fillStyle = C.white;
+        ctx.beginPath();
+        ctx.moveTo(markerX, barY - 12);
+        ctx.lineTo(markerX - 11, barY + 3);
+        ctx.lineTo(markerX + 11, barY + 3);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = C.navy;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        if (!modal.result) {
+          text('가운데 초록 칸에서 탭!', W / 2, 580, 19, C.green, 'center', 900);
+          text(`남은 시간 ${Math.max(0, modal.time).toFixed(1)}초`, W / 2, 616, 13, C.navy, 'center', 800);
+          roundRect(114, 651, 312, 48, 15, C.navy);
+          text('화면 어디든 탭', W / 2, 675, 15, C.cream, 'center', 900);
+        } else {
+          const resultLabel = modal.result === 'perfect' ? 'PERFECT!' : modal.result === 'good' ? 'GOOD!' : 'SAFE!';
+          const resultColor = modal.result === 'perfect' ? C.green : modal.result === 'good' ? C.navy : C.coral;
+          text(resultLabel, W / 2, 584, 30, resultColor, 'center', 900);
+          text(`+${modal.points.toLocaleString()} · 전달 완료`, W / 2, 626, 15, C.navy, 'center', 900);
+          text('잠시 후 다시 출발해요!', W / 2, 675, 14, C.green, 'center', 800);
+        }
+      }
+
+      function drawDeliveryFooter() {
+        roundRect(18, 884, 504, 56, 14, C.navy);
+        const stop = activeDeliveryStop();
+        const approaching = approachingDeliveryStop();
+        const label = delivery.handoffModal
+          ? '게이지 중앙을 맞춰 양말을 전달하세요!'
+          : stop
+            ? '기부처에 도착하면 잠시 멈춰요!'
+          : approaching
+            ? '기부처 안전 구역 · 깃털과 장애물 충돌 없음'
+          : delivery.feverTime > 0
+            ? 'FEVER! 충돌 면역 · 점수 2배'
+            : '탭해서 점프 · 깃털 5개면 피버';
+        text(label, W / 2, 912, 15, stop || approaching ? C.yellow : C.cream, 'center', 900);
+      }
+
+      function drawDelivery() {
+        drawDeliveryBackground();
+        drawDeliveryHUD();
+        delivery.stops.forEach(drawDeliveryStop);
+        if (!activeDeliveryStop()) delivery.feathers.forEach(drawFeather);
+        delivery.obstacles.forEach(drawObstacle);
+        drawSkater();
+        drawDeliveryHearts();
+        drawDeliveryFooter();
+        drawFeverFlash();
+        drawToast();
+        drawHandoffModal();
+      }
+
+      function updateTransition(dt) {
+        transitionLeft = Math.max(0, transitionLeft - dt);
+        const nextScene = transitionSceneFor(transitionLeft);
+        if (nextScene !== transitionScene) {
+          transitionScene = nextScene;
+          playSfx(nextScene === 0 ? 'shopClose' : nextScene === 1 ? 'packBag' : 'skateStart');
+          announce(nextScene === 0
+            ? '1단계 장사 끝. 게임은 계속됩니다.'
+            : nextScene === 1
+              ? '기부 양말을 세 기부처별로 가방에 담습니다.'
+              : '2단계 기부 배달을 시작합니다.');
+        }
+        if (transitionLeft <= 0) startDelivery();
+      }
+
+      function update(dt) {
+        if (isPaused) return;
+        if (toast.time > 0) toast.time = Math.max(0, toast.time - dt);
+
+        if (phase === 'factory') updateFactory(dt);
+        else if (phase === 'transition') updateTransition(dt);
+        else if (phase === 'delivery') updateDelivery(dt);
+        syncExternalBgmForPhase();
+        updateExternalAudio(dt);
+      }
+
+      function draw() {
+        if (phase === 'factory') drawFactory();
+        else if (phase === 'transition') drawTransition();
+        else if (phase === 'delivery' || phase === 'end') drawDelivery();
+        else {
+          resetFactory();
+          drawFactory();
+        }
+      }
+
+      function loop(timestamp) {
+        const rawDt = lastTime ? (timestamp - lastTime) / 1000 : 0;
+        const dt = Math.min(0.05, Math.max(0, rawDt));
+        lastTime = timestamp;
+        update(dt);
+        draw();
+        requestAnimationFrame(loop);
+      }
+
+      primaryButton.onclick = startGame;
+      soundButton.onclick = toggleAudio;
+      pauseButton.onclick = pauseGame;
+      shareButton.onclick = shareScore;
+      window.addEventListener('pointerdown', ensureAudio, { once: true });
+      updateSoundButton();
+
+      ctx.imageSmoothingEnabled = false;
+      resetFactory();
+      showBestScore(false);
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

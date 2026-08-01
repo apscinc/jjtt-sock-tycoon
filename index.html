@@ -456,12 +456,12 @@
       gameTitleLogo.src = `${ASSET_BASE}${assetFiles.gameTitleLogo}`;
 
       const AUDIO_FILES = {
-        main: 'main-page.webm',
-        stage1: 'stage1-store.webm',
-        transition: 'stage-change.webm',
-        stage2: 'stage2-skateboard.webm',
-        fever: 'fever.webm',
-        finish: 'finish.webm'
+        main: ['main-page.mp3', 'main-page.webm'],
+        stage1: ['stage1-store.mp3', 'stage1-store.webm'],
+        transition: ['stage-change.mp3', 'stage-change.webm'],
+        stage2: ['stage2-skateboard.mp3', 'stage2-skateboard.webm'],
+        fever: ['fever.mp3', 'fever.webm'],
+        finish: ['finish.mp3', 'finish.webm']
       };
       const AUDIO_VOLUMES = {
         main: 0.085,
@@ -473,26 +473,44 @@
       };
       const SFX_MASTER_VOLUME = 0.90;
       const externalTracks = {};
-      Object.entries(AUDIO_FILES).forEach(([name, file]) => {
+      Object.entries(AUDIO_FILES).forEach(([name, files]) => {
         const audio = new Audio();
+        const remoteSources = files.map(file => `${AUDIO_ASSET_BASE}${file}`);
+        const cafe24Sources = files
+          .filter(file => file.endsWith('.webm'))
+          .map(file => `${ASSET_BASE}audio/${file}`);
+        const localSources = files.map(file => `${LOCAL_ASSET_BASE}audio/${file}`);
         const track = {
           audio,
-          file,
-          usingLocal: false,
+          sources: [...remoteSources, ...cafe24Sources, ...localSources],
+          sourceIndex: 0,
           failed: false,
-          targetVolume: 0
+          targetVolume: 0,
+          tryNextSource: null
+        };
+        track.tryNextSource = () => {
+          if (track.sourceIndex + 1 >= track.sources.length) {
+            track.failed = true;
+            return false;
+          }
+          track.sourceIndex += 1;
+          track.failed = false;
+          audio.pause();
+          try { audio.currentTime = 0; } catch (error) { /* 다음 음원 로딩 준비 */ }
+          audio.src = track.sources[track.sourceIndex];
+          return true;
         };
         audio.preload = 'auto';
         audio.playsInline = true;
         audio.loop = ['main', 'stage1', 'stage2'].includes(name);
         audio.volume = 0;
         audio.addEventListener('error', () => {
-          if (!track.usingLocal) {
-            track.usingLocal = true;
-            audio.src = `${LOCAL_ASSET_BASE}audio/${file}`;
-            if (name === currentBgmName && externalAudioUnlocked && !audioMuted && !isPaused) safePlayExternalTrack(track);
-          } else {
-            track.failed = true;
+          if (track.tryNextSource()
+              && name === currentBgmName
+              && externalAudioUnlocked
+              && !audioMuted
+              && !isPaused) {
+            safePlayExternalTrack(track);
           }
         });
         audio.addEventListener('ended', () => {
@@ -501,7 +519,7 @@
             switchExternalBgm('main', { restart: true });
           }
         });
-        audio.src = `${AUDIO_ASSET_BASE}${file}`;
+        audio.src = track.sources[0];
         externalTracks[name] = track;
       });
 
@@ -695,8 +713,10 @@
         track.audio.muted = false;
         const playPromise = track.audio.play();
         if (playPromise && typeof playPromise.catch === 'function') {
-          playPromise.catch(() => {
-            // 자동재생 제한이나 로딩 지연 시 다음 사용자 입력에서 다시 시도합니다.
+          playPromise.catch(error => {
+            // 자동재생 제한은 다음 사용자 입력에서 재시도하고, 형식/네트워크 오류는 예비 음원으로 넘깁니다.
+            if ((error && error.name === 'NotAllowedError') || audioMuted || isPaused || !externalAudioUnlocked) return;
+            if (track.tryNextSource()) safePlayExternalTrack(track);
           });
         }
       }
